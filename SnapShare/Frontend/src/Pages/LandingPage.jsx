@@ -1,3 +1,7 @@
+//componenents
+import Login from "../components/Login";
+import SignIn from "../components/SignIn";
+
 import { useState } from "react";
 
 // How it works componetnt/button
@@ -19,6 +23,9 @@ function HowitWorks(){
 function LandingPage() {
     return (
         <div>
+            {/* Login Butoons/Sign buttons */}
+            <Login/>
+            <SignIn/>
             <h1>Store your memories. Share your World</h1>
             <p>Collect every photo & video into secure digital albums, ready to share with friends and family
                 -no apps, no hussls, so simple even grandma will use it.
