@@ -1,7 +1,5 @@
 //componenents
-import Login from "../components/Login";
-import SignIn from "../components/SignIn";
-
+import { Link } from "react-router-dom";
 import { useState } from "react";
 
 // How it works componetnt/button
@@ -12,9 +10,7 @@ function HowitWorks(){
             <button onClick={()=> setShowImage(true)}>How it works?</button>
         
         { showImage && (
-            <img
-                    
-            />
+            <img/>
         )}
         </div>
     )
@@ -24,13 +20,28 @@ function LandingPage() {
     return (
         <div>
             {/* Login Butoons/Sign buttons */}
-            <Login/>
-            <SignIn/>
+          <Link to="/login">
+             <button>
+                Login In 
+            </button>
+          </Link>
+
+          <Link to="/signUp">
+             <button>
+                Get Started 
+            </button>
+          </Link>
+
             <h1>Store your memories. Share your World</h1>
             <p>Collect every photo & video into secure digital albums, ready to share with friends and family
                 -no apps, no hussls, so simple even grandma will use it.
             </p>
-        {/* How it works button*/}
+        {/* button*/}
+            <Link to="/signUp">
+             <button>
+                Get Started 
+            </button>
+          </Link>
             <HowitWorks/>
 
             <p>Start free . Setup in under 1 minute</p>
