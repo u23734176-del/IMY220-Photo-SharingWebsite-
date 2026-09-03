@@ -2,30 +2,43 @@
 //Tadiwanashe Chigeza u23734276
 
 import { useState } from "react";
+import {useNavigate} from "react-router-dom" // use to navigate to HomePage
 
 function Login({ username , setUsername}) {
 
     const [ password , setPassword ] = useState(""); //password for the Login page 
     const [errorMessage, setErrorMessage] = useState(""); //error messae 
     const [showPassword, setShowPassword] = useState(false);
-    
+
+    const navigate = useNavigate();
+
     const handleSubmit = (event) => {
         event.preventDefault();
 
         if (!username.trim()) {//if username is empty
-            setErrorMessage("Please enter both a username");
+            setErrorMessage("Please enter the username");
             return;
-        }if( !password.trim()){
+
+        }if (username.trim().length < 3) {
+            setErrorMessage("Username must be at least 3 characters long.");
+            return;
+        }else if( !password.trim()){
             setErrorMessage("Please enter the password");
+            return;
+            
+        } else if( password.length < 6){
+            setErrorMessage("Password must be 6 characters long");
+            return;
         }
         console.log("Username:"+ username);
         console.log("Passwrod:" + password);
         
+        navigate("/home"); //go to home page if successful login in  
     }
     return(
             <div>
                 <h1>Login into </h1>
-                <img src="../assets/logo.png"></img>
+                <img src="../assets/logo.png" alt="SnapShare"/>
                 <div id="Login-in containter">
                         <form onSubmit={handleSubmit}>
                                 <div>
@@ -35,8 +48,8 @@ function Login({ username , setUsername}) {
                                         id="username" 
                                         value ={username} 
                                         onChange={(event => setUsername(event.target.value))}
-                                        placeholder="Please enter the Username"
-                                        required = "required"/>
+                                        placeholder="Please enter the UsernameID"
+                                        />
                                 </div>
 
                                 <div>
@@ -47,7 +60,7 @@ function Login({ username , setUsername}) {
                                             value={password} 
                                             onChange={(event => setPassword(event.target.value))}
                                             placeholder="Please eater your passwword"
-                                            required = "required"/>
+                                            />
                                     <br/>
                                         <button type="button" onClick={() => setShowPassword(!showPassword)}>Show Password</button>
                                         {
@@ -55,7 +68,8 @@ function Login({ username , setUsername}) {
                                         }
                                 </div>
                                 <div>
-                                    {errorMessage && <p>{errorMessage}</p>}
+                                    {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+                                    
                                 </div>
                                 <button type="submit">Log In</button>
                         </form>
@@ -65,6 +79,6 @@ function Login({ username , setUsername}) {
 }
 export default Login;
 
+//Dummy data
 
-// Helper functions/componets
 

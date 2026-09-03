@@ -35,7 +35,7 @@ function App() {
           <Route path = "/albums" element = {<Albums/>}/>
 
            <Route path="/login" element={<Login username ={username} setUsername = {setUsername}/>} />
-           <Route path="/signUp" element={<SignUp />} />
+           <Route path="/signUp" element={<SignUp setUsername = {setUsername}/>} />
         </Routes>
 
     </BrowserRouter>
