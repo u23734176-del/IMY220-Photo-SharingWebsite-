@@ -1,27 +1,30 @@
-//pages
-import LandingPage from './Pages/LandingPage'
+// pages
+import LandingPage from './Pages/LandingPage';
 import HomePage from './Pages/HomePage';
 import ThemeOfDay from './Pages/ThemeOfDay';
 import Posts from './Pages/PostPage';
-import Albums from './Pages/AlbumsPage'
-import Friends from './Pages/FriendsPage'
-//compononets
+import Albums from './Pages/AlbumsPage';
+import Friends from './Pages/FriendsPage';
+import ProfilePage from './Pages/ProfilePage'; // 1. Import ProfilePage
+
+// components
 import Navigation from './components/navigation';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 
-//styling
-import './App.css'
-//imports for use
-import { BrowserRouter , Routes , Route} from "react-router-dom";
+// styling
+import './App.css';
+
+// imports for use
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from 'react';
 
 function App() {
+  const [username, setUsername] = useState("");
   
-    const [username , setUsername] = useState("");
 
-    //Dummy Values
-     const [posts, setPosts] = useState([
+  // Dummy Values
+  const [posts, setPosts] = useState([
     {
       id: 1,
       image: "../assets/logo.png",
@@ -45,28 +48,29 @@ function App() {
   ]);
 
   return (
-
     <BrowserRouter>
-    
-      <Navigation/>
+      <Navigation />
 
-        <Routes>
-          <Route path="/" element={<LandingPage/>}/>
-          <Route path="/themeOfDay" element ={<ThemeOfDay/>}/>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/themeOfDay" element={<ThemeOfDay />} />
+        <Route path="/home" element={<HomePage username={username} posts={posts} />} />
+        
+        {/* 2. Route passing username and posts to ProfilePage */}
+        <Route 
+          path="/profile" 
+          element={<ProfilePage username={username} posts={posts} />} 
+        />
 
-          <Route path="/home" element={<HomePage username ={username} posts = {posts}/>}/>
+        <Route path="/posts" element={<Posts posts={posts} setPosts={setPosts} />} />
+        <Route path="/friends" element={<Friends />} />
+        <Route path="/albums" element={<Albums />} />
 
-          <Route path = "/posts" element = {<Posts posts = {posts} setPosts = {setPosts}/>} />
-
-          <Route path = "/friends" element = {<Friends/>}/>
-          <Route path = "/albums" element = {<Albums/>}/>
-
-           <Route path="/login" element={<Login username ={username} setUsername = {setUsername}/>} />
-           <Route path="/signUp" element={<SignUp setUsername = {setUsername}/>} />
-        </Routes>
-
+        <Route path="/login" element={<Login username={username} setUsername={setUsername} />} />
+        <Route path="/signUp" element={<SignUp setUsername={setUsername} />} />
+      </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
 export default App;
