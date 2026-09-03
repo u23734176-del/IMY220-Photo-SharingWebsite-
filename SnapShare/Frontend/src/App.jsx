@@ -20,6 +20,30 @@ function App() {
   
     const [username , setUsername] = useState("");
 
+    //Dummy Values
+     const [posts, setPosts] = useState([
+    {
+      id: 1,
+      image: "../assets/logo.png",
+      caption: "Exploring new places!",
+      author: "john_doe",
+      category: "Travel",
+      createdAt: "2026-09-03 10:15",
+      likes: 12,
+      comments: ["Amazing shot!", "Hope you had fun!"]
+    },
+    {
+      id: 2,
+      image: "../assets/logo.png",
+      caption: "Building a React app.",
+      author: "tadiwanashe",
+      category: "Technology",
+      createdAt: "2026-09-03 14:30",
+      likes: 25,
+      comments: ["Looks clean!"]
+    }
+  ]);
+
   return (
 
     <BrowserRouter>
@@ -28,9 +52,12 @@ function App() {
 
         <Routes>
           <Route path="/" element={<LandingPage/>}/>
-          <Route path="/home" element={<HomePage username ={username}/>}/>
           <Route path="/themeOfDay" element ={<ThemeOfDay/>}/>
-          <Route path = "/posts" element = {<Posts/>}/>
+
+          <Route path="/home" element={<HomePage username ={username} posts = {posts}/>}/>
+
+          <Route path = "/posts" element = {<Posts posts = {posts} setPosts = {setPosts}/>} />
+
           <Route path = "/friends" element = {<Friends/>}/>
           <Route path = "/albums" element = {<Albums/>}/>
 
