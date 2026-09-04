@@ -26,13 +26,7 @@ function Post({post}){
     };
     return (
     <article>
-      {/* Author Header, Category, & Timestamp */}
-      <div>
-        <p><strong>Author:</strong> {post.author}</p>
-        <p><strong>Category:</strong> {post.category}</p>
-        <p><strong>Posted on:</strong> {post.createdAt}</p>
-      </div>
-
+    
       {/* Post Image */}
       <div>
         <img src={post.image} alt={post.caption} />
@@ -42,6 +36,13 @@ function Post({post}){
       <div>
         <p><strong>Caption:</strong> {post.caption}</p>
       </div>
+      {/* Author Header, Category, & Timestamp */}
+      <div>
+        <p><strong>Author:</strong> {post.author}</p>
+        <p><strong>Category:</strong> {post.category}</p>
+        <p><strong>Posted on:</strong> {post.createdAt}</p>
+      </div>
+      
 
       {/* Likes Section */}
       <div>

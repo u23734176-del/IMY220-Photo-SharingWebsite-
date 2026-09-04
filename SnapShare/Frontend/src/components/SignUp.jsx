@@ -4,7 +4,7 @@ import { useState } from "react";
 // import {useNavigate} from "react-router-dom" // use to navigate to HomePage
 
 //validation logic
-const validateForm = (firstname ,surname ,username , email , password , confirmPassword) =>{
+const validateForm = (firstname ,surname ,username , email , password , confirmPassword , pronouns) =>{
     
     const nameRegex = /^[A-Za-z\s-]+$/; //Regex allowing uppercase, lowercase, spaces, and hyphens
 
@@ -43,6 +43,9 @@ const validateForm = (firstname ,surname ,username , email , password , confirmP
     if (password !== confirmPassword) {
         return "Passwords do not match.";
     }
+    if (!pronouns) {
+        return "Please select your pronouns.";
+    }
     return null;
 }
 
@@ -53,6 +56,7 @@ function SignUp({setUsername}){
         const [email, setEmail] = useState("");
         const [password, setPassword] = useState("");
         const [confirmPassword, setConfirmPassword] = useState("");
+        const [pronouns, setPronouns] = useState("");
         const [showPassword, setShowPassword] = useState(false);
         const [errorMessage, setErrorMessage] = useState("");
 
@@ -112,6 +116,26 @@ function SignUp({setUsername}){
                             placeholder="Please enter your surname"
                         />
                     </div>
+
+                     {/* Pronouns */}
+                    <div id="pronounsInput">
+                        <label htmlFor="pronouns">Pronouns:</label>
+                        <br />
+
+                        <select
+                            id="pronouns"
+                            value={pronouns}
+                            onChange={(event) => setPronouns(event.target.value)}
+                        >
+                            <option value="">Select your pronouns</option>
+                            <option value="he/him">He/Him</option>
+                            <option value="she/her">She/Her</option>
+                            <option value="they/them">They/Them</option>
+                            <option value="other">Other</option>
+                            <option value="prefer-not-to-say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    
 
                     {/* Username*/}
                     <div id="usernameInput">

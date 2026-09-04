@@ -2,20 +2,18 @@
 //Tadiwanashe Chigeza u23734276
 
 import { useState } from "react";
-import {useNavigate} from "react-router-dom" // use to navigate to HomePage
 
-function Login({ username , setUsername}) {
+function Login({ username , setUsername }) {
 
     const [ password , setPassword ] = useState(""); //password for the Login page 
     const [errorMessage, setErrorMessage] = useState(""); //error messae 
     const [showPassword, setShowPassword] = useState(false);
 
-    const navigate = useNavigate();
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-
-        if (!username.trim()) {//if username is empty
+//valdation logic
+const validateForm =(username , password) =>{
+    
+    if (!username.trim()) {//if username is empty
             setErrorMessage("Please enter the username");
             return;
 
@@ -30,10 +28,43 @@ function Login({ username , setUsername}) {
             setErrorMessage("Password must be 6 characters long");
             return;
         }
+    return null;
+}
+//Send Form (Clinet-side -Requests)
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        // validation check
+        const validationError = validateForm( username, password);
+
+        if (validationError) {
+            setErrorMessage(validationError);
+            return;
+        }
         console.log("Username:"+ username);
         console.log("Passwrod:" + password);
         
-        navigate("/home"); //go to home page if successful login in  
+        //Post request to Express endpoint
+        try{
+                // Relative URL routes through dev proxy (no CORS issues)
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.error || "Login failed.");
+        return;
+      }
+
+      // Update global username state with server response data
+      setUsername(data.user.username);
+        }catch{
+            setErrorMessage("Unable to connect to the server. Ensure server.js is running.");
+        } 
     }
     return(
             <div>
@@ -79,6 +110,5 @@ function Login({ username , setUsername}) {
 }
 export default Login;
 
-//Dummy data
 
 
