@@ -1,19 +1,53 @@
 // src/Pages/ProfilePage.jsx
 
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import FriendsComponent from '../components/FriendsComponent';
 
-function ProfilePage({ username }) {
-  const navigate = useNavigate(); //[cite: 5]
+function ProfilePage({ users = [], friendsList = [] }) {
+  const navigate = useNavigate();
+  const { id } = useParams();
 
-  // Dummy friend items following the wireframe list
-  const friendsList = [
-    { id: 1, name: "Johan", status: "Online" },
-    { id: 2, name: "FriendUserName2", status: "Online" },
-    { id: 3, name: "FriendUserName3", status: "Online" },
-    { id: 4, name: "FriendUserName4", status: "Online" }
-  ];
+  // Helper to extract matching user or fallback to Guest
+  const getProfileData = (userId) => {
+    const matched = users.find((u) => u.id === Number(userId));
+    return matched ? { ...matched } : {
+      id: "Guest",
+      username: "Guest",
+      firstname: "Guest",
+      surname: "User",
+      email: "guest@example.com",
+      pronouns: "They/Them",
+      bio: "You are currently browsing in Guest Mode."
+    };
+  };
 
-  
+  // Track prevId to sync state directly during render when route parameter changes
+  const [prevId, setPrevId] = useState(id);
+  const [userProfile, setUserProfile] = useState(() => getProfileData(id));
+
+  if (id !== prevId) {
+    setPrevId(id);
+    setUserProfile(getProfileData(id));
+  }
+
+  // Track active field being edited and input value
+  const [editingField, setEditingField] = useState(null);
+  const [tempValue, setTempValue] = useState("");
+
+  const handleStartEdit = (field, currentValue = "") => {
+    setEditingField(field);
+    setTempValue(currentValue);
+  };
+
+  const handleSaveEdit = (field) => {
+    setUserProfile((prev) => ({
+      ...prev,
+      [field]: tempValue
+    }));
+    setEditingField(null);
+    setTempValue("");
+  };
 
   const handleLogout = () => {
     navigate("/login");
@@ -33,45 +67,160 @@ function ProfilePage({ username }) {
       {/* Profile Details Block */}
       <section>
         <h2>Profile Details:</h2>
-        <p><strong>Username :</strong> {username || "Username"}</p>
-        <p><strong>Pronouns:</strong> He/him/Her</p>
-        <div>
-          <p><strong>Bio:</strong></p>
-          <p>bluh blubh bluh bluh blibj bluh</p>
-        </div>
+        <p><strong>User ID:</strong> {userProfile.id || "N/A"}</p>
       </section>
 
-      {/* Friends List Block */}
-      <section>
-        <h2>Friends</h2>
-        <ul>
-          {friendsList.map((friend) => (
-            <li key={friend.id}>
-              <span>Picture of Friend</span>
-              <br/>
-              <small>{friend.status} </small>
-              <br/>
-              <span>{friend.name} </span>
-              <br/>
-              <button type="button">Accept Frined request</button>
-              <br/>
-            </li>
-          ))}
-        </ul>
-        <div>
-          <button type="button">+</button>
-          <button type="button">✕</button>
-        </div>
-      </section>
+      {/* Friends Section Component */}
+      <FriendsComponent friendsList={friendsList} />
 
       {/* Account Management Section */}
       <section>
         <h3>Account Management</h3>
         <ul>
-          <li><button type="button">Change Email Address</button></li>
-          <li><button type="button">Change Planning</button></li>
-          <li><button type="button">Change Password</button></li>
-          <li><button type="button">Edit Changes</button></li>
+          {/* First Name */}
+          <div>
+            <p><strong>First Name:</strong> {userProfile.firstname}</p>
+            {editingField === "firstname" ? (
+              <div>
+                <input 
+                  type="text" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new first name"
+                />
+                <button type="button" onClick={() => handleSaveEdit("firstname")}>Save</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("firstname", userProfile.firstname)}>
+                Change First Name
+              </button>
+            )}
+          </div>
+
+          {/* Surname */}
+          <div>
+            <p><strong>Surname:</strong> {userProfile.surname}</p>
+            {editingField === "surname" ? (
+              <div>
+                <input 
+                  type="text" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new surname"
+                />
+                <button type="button" onClick={() => handleSaveEdit("surname")}>Save</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("surname", userProfile.surname)}>
+                Change Surname
+              </button>
+            )}
+          </div>
+
+          {/* Username */}
+          <div>
+            <p><strong>Username:</strong> {userProfile.username}</p>
+            {editingField === "username" ? (
+              <div>
+                <input 
+                  type="text" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new username"
+                />
+                <button type="button" onClick={() => handleSaveEdit("username")}>Save</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("username", userProfile.username)}>
+                Change Username
+              </button>
+            )}
+          </div>
+
+          {/* Email */}
+          <div>
+            <p><strong>Email Address:</strong> {userProfile.email}</p>
+            {editingField === "email" ? (
+              <div>
+                <input 
+                  type="email" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new email"
+                />
+                <button type="button" onClick={() => handleSaveEdit("email")}>Save</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("email", userProfile.email)}>
+                Change Email Address
+              </button>
+            )}
+          </div>
+
+          {/* Pronouns */}
+          <div>
+            <p><strong>Pronouns:</strong> {userProfile.pronouns}</p>
+            {editingField === "pronouns" ? (
+              <div>
+                <input 
+                  type="text" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new pronouns"
+                />
+                <button type="button" onClick={() => handleSaveEdit("pronouns")}>Save</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("pronouns", userProfile.pronouns)}>
+                Change Pronouns
+              </button>
+            )}
+          </div>
+
+          {/* Bio */}
+          <div>
+            <p><strong>Bio:</strong> {userProfile.bio}</p>
+            {editingField === "bio" ? (
+              <div>
+                <input 
+                  type="text" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new bio"
+                />
+                <button type="button" onClick={() => handleSaveEdit("bio")}>Save</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("bio", userProfile.bio)}>
+                Change Bio
+              </button>
+            )}
+          </div>    
+
+          <li>
+            {editingField === "password" ? (
+              <div>
+                <input 
+                  type="password" 
+                  value={tempValue} 
+                  onChange={(e) => setTempValue(e.target.value)} 
+                  placeholder="Enter new password"
+                />
+                <button type="button" onClick={() => handleSaveEdit("password")}>Save Password</button>
+                <button type="button" onClick={() => setEditingField(null)}>Cancel</button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleStartEdit("password", "")}>
+                Change Password
+              </button>
+            )}
+          </li>
         </ul>
       </section>
 
@@ -80,8 +229,8 @@ function ProfilePage({ username }) {
         <h3>Settings</h3>
         <ul>
           <li>Preferences</li>
-          <li>language</li>
-          <li>notification options</li>
+          <li>Language</li>
+          <li>Notification options</li>
         </ul>
       </section>
 
@@ -98,8 +247,4 @@ function ProfilePage({ username }) {
   );
 }
 
-// Friends Componenet 
-
-// 
-
-export default ProfilePage; //[cite: 5]
+export default ProfilePage;

@@ -29,28 +29,36 @@ function App() {
       username: "tadiwanashe",
       firstname: "Tadiwanashe",
       surname: "Chigeza",
-      email: "tadiwanashe@example.com"
+      email: "tadiwanashe@example.com",
+      pronouns: "He/Him",
+      bio: "Full-stack developer building SnapShare!"
     },
     {
       id: 2,
       username: "john_doe",
       firstname: "John",
       surname: "Doe",
-      email: "john@example.com"
+      email: "john@example.com",
+      pronouns: "He/Him",
+      bio: "Photography enthusiast and world traveler."
     },
     {
       id: 3,
       username: "sarah_c",
       firstname: "Sarah",
       surname: "Connor",
-      email: "sarah@example.com"
+      email: "sarah@example.com",
+      pronouns: "She/Her",
+      bio: "Nature lover, coffee drinker, and tech fanatic."
     },
     {
       id: 4,
       username: "alex_smith",
       firstname: "Alex",
       surname: "Smith",
-      email: "alex@example.com"
+      email: "alex@example.com",
+      pronouns: "They/Them",
+      bio: "UX Designer & fashion blogger."
     }
   ]);
 
@@ -112,24 +120,24 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/themeOfDay" element={<ThemeOfDay />} />
-        
-        <Route path="/home" element={<HomePage username={username} posts={posts} />}/>
-        <Route path="/profile" element={ <ProfilePage username={username} posts={posts} users={users} friendsList={friendsList} setFriendsList={setFriendsList} />} />
+        <Route path="/home" element={<HomePage username={username} posts={posts} />} />
 
-        <Route path="/posts" element={<Posts username={username} posts={posts} setPosts={setPosts}/>} />
+        {/* Supports both /profile (Guest) and /profile/1 (Specific User) */}
+        <Route 
+          path="/profile" 
+          element={<ProfilePage users={users} friendsList={friendsList} />} 
+        />
+        <Route 
+          path="/profile/:id" 
+          element={<ProfilePage users={users} friendsList={friendsList} />} 
+        />
 
-        <Route path="/friends" element={ <Friends friendsList={friendsList} setFriendsList={setFriendsList} />} />
-  
+        <Route path="/posts" element={<Posts username={username} posts={posts} setPosts={setPosts} />} />
+        <Route path="/friends" element={<Friends friendsList={friendsList} setFriendsList={setFriendsList} />} />
         <Route path="/albums" element={<Albums />} />
 
-        <Route 
-          path="/login" 
-          element={<Login username={username} setUsername={setUsername} />} 
-        />
-        <Route 
-          path="/signUp" 
-          element={<SignUp setUsername={setUsername} />} 
-        />
+        <Route path="/login" element={<Login username={username} setUsername={setUsername} />} />
+        <Route path="/signUp" element={<SignUp setUsername={setUsername} />} />
       </Routes>
     </BrowserRouter>
   );

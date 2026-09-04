@@ -22,7 +22,7 @@ function HomePage({ username, posts }) {
 
       {/* Page Description */}
       <div>
-        <p>Short Text Description of Page , like : "See what people are posting"</p>
+        <p>"See what people are posting"</p>
       </div>
 
       {/* Dropdown Filters */}

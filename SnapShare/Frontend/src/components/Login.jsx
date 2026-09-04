@@ -1,114 +1,131 @@
 // Login in page
 //Tadiwanashe Chigeza u23734276
 
+// Login.jsx
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
-function Login({ username , setUsername }) {
+function Login({ username = "", setUsername }) {
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-    const [ password , setPassword ] = useState(""); //password for the Login page 
-    const [errorMessage, setErrorMessage] = useState(""); //error messae 
-    const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-
-//valdation logic
-const validateForm =(username , password) =>{
-    
-    if (!username.trim()) {//if username is empty
-            setErrorMessage("Please enter the username");
-            return;
-
-        }if (username.trim().length < 3) {
-            setErrorMessage("Username must be at least 3 characters long.");
-            return;
-        }else if( !password.trim()){
-            setErrorMessage("Please enter the password");
-            return;
-            
-        } else if( password.length < 6){
-            setErrorMessage("Password must be 6 characters long");
-            return;
-        }
+  const validateForm = (userVal, passVal) => {
+    if (!userVal || !userVal.trim()) {
+      return "Please enter your username.";
+    }
+    if (userVal.trim().length < 3) {
+      return "Username must be at least 3 characters long.";
+    }
+    if (!passVal || !passVal.trim()) {
+      return "Please enter your password.";
+    }
+    if (passVal.length < 6) {
+      return "Password must be at least 6 characters long.";
+    }
     return null;
-}
-//Send Form (Clinet-side -Requests)
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+  };
 
-        // validation check
-        const validationError = validateForm( username, password);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setErrorMessage("");
 
-        if (validationError) {
-            setErrorMessage(validationError);
-            return;
-        }
-        console.log("Username:"+ username);
-        console.log("Passwrod:" + password);
-        
-        //Post request to Express endpoint
-        try{
-                // Relative URL routes through dev proxy (no CORS issues)
+    // Run client-side format checks
+    const validationError = validateForm(username, password);
+    if (validationError) {
+      setErrorMessage(validationError);
+      return;
+    }
+
+    try {
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim(), password })
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password,
+        }),
       });
 
       const data = await response.json();
 
+      // Handles 400 & 401 errors from server ("Username does not exist" or "Incorrect password")
       if (!response.ok) {
         setErrorMessage(data.error || "Login failed.");
         return;
       }
 
-      // Update global username state with server response data
-      setUsername(data.user.username);
-        }catch{
-            setErrorMessage("Unable to connect to the server. Ensure server.js is running.");
-        } 
+      // Update global username state on successful authentication
+      if (data.user && data.user.username) {
+        setUsername(data.user.username);
+      }
+
+      setPassword("");
+      navigate("/home");
+    } catch (error) {
+      console.error("Fetch Error:", error);
+      setErrorMessage("Server connection error.");
     }
-    return(
+  };
+
+  return (
+    <div>
+      <h1>Login into SnapShare</h1>
+      <img src="../assets/logo.png" alt="SnapShare" />
+      <div id="Login-container">
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="username">Username:</label>
+            <br />
+            <input
+              type="text"
+              id="username"
+              value={username || ""}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Enter your Username"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password">Password:</label>
+            <br />
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              value={password || ""}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+            />
+            <br />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "Hide Password" : "Show Password"}
+            </button>
+          </div>
+
+          {errorMessage && (
             <div>
-                <h1>Login into </h1>
-                <img src="../assets/logo.png" alt="SnapShare"/>
-                <div id="Login-in containter">
-                        <form onSubmit={handleSubmit}>
-                                <div>
-                                    <label htmlFor ="username">Username:</label>
-                                    <br/>
-                                <input type="text" 
-                                        id="username" 
-                                        value ={username} 
-                                        onChange={(event => setUsername(event.target.value))}
-                                        placeholder="Please enter the UsernameID"
-                                        />
-                                </div>
-
-                                <div>
-                                    <label htmlFor ="password">Password:</label>
-                                    <br/>
-                                    <input type={showPassword ? "text" : "password"}
-                                            id="password" 
-                                            value={password} 
-                                            onChange={(event => setPassword(event.target.value))}
-                                            placeholder="Please eater your passwword"
-                                            />
-                                    <br/>
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)}>Show Password</button>
-                                        {
-                                            showPassword ? "Hide password": "Show Password"
-                                        }
-                                </div>
-                                <div>
-                                    {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-                                    
-                                </div>
-                                <button type="submit">Log In</button>
-                        </form>
-                </div>
+              <p style={{ color: "red" }}>{errorMessage}</p>
             </div>
-    )  
+          )}
+
+          <br />
+          <button type="submit">Log In</button>
+        </form>
+      </div>
+
+      <div id="SignUpInstead">
+        <p>Don't have an account?</p>
+        <Link to="/signUp">
+          <button type="button">Get Started</button>
+        </Link>
+      </div>
+    </div>
+  );
 }
+
 export default Login;
-
-
-

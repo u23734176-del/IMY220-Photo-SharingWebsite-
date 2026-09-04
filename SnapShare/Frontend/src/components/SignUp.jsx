@@ -1,6 +1,7 @@
 // Sign Up page 
 // Tadiwanashe Chigeza
 import { useState } from "react";
+import { Link , useNavigate } from "react-router-dom";
 // import {useNavigate} from "react-router-dom" // use to navigate to HomePage
 
 //validation logic
@@ -60,7 +61,9 @@ function SignUp({setUsername}){
         const [showPassword, setShowPassword] = useState(false);
         const [errorMessage, setErrorMessage] = useState("");
 
-        const handleSubmit = (event) => {
+        const navigate = useNavigate();
+
+        const handleSubmit = async (event) => {
         event.preventDefault();
         setErrorMessage("");
 
@@ -71,20 +74,44 @@ function SignUp({setUsername}){
             usernameID, 
             email, 
             password, 
-            confirmPassword
+            confirmPassword,
+            pronouns
         );
         if (validationError) {
             setErrorMessage(validationError);
             return;
         }
+        try {
+            const response = await fetch("/api/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify( {
+                firstname: firstname.trim(),
+                surname: surname.trim(),
+                username: usernameID.trim(),
+                email: email.trim(),
+                password: password,
+                pronouns: pronouns,
+            }),
+        });
 
-        // 2. Send user-entered username state to App.jsx
-        setUsername(usernameID);
-        
-        console.log("Username:"+ usernameID);
-        console.log("Passwrod:" + password);
+    const data = await response.json();
+
+    if (!response.ok) {
+      setErrorMessage(data.error || "Sign-up failed.");
+      return;
+    }
+
+    // 3. Update global username state and redirect to home
+        setUsername(data.user.username);
+        navigate("/home");
+
+    } catch (error) {
+            console.error("Fetch Error:", error);
+            setErrorMessage("Unable to connect to Express backend.");
+        }
     };
-
+        
     return (
         <div>
             <img src="../assets/logo.png" alt="SnapShare" />
@@ -203,6 +230,16 @@ function SignUp({setUsername}){
                     <button type="submit">Sign Up</button>
                 </form>
             </div>
+
+            <div id="SignUpInstead">
+        <p> Have an account?</p>
+            <Link to="/login">
+             <button>
+                Sign in 
+             </button>
+          </Link>
+      </div>
+
         </div>
     );
 }
