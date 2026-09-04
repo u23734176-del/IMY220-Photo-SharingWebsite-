@@ -102,7 +102,7 @@ function App() {
       comments: ["So peaceful", "Where is this?"]
     },
     {
-      id: 4,
+      id: 1,
       image: "../assets/logo.png",
       caption: "New fashion style unlocked.",
       author: "alex_smith",
@@ -131,8 +131,9 @@ function App() {
           path="/profile/:id" 
           element={<ProfilePage users={users} friendsList={friendsList} />} 
         />
-
+        
         <Route path="/posts" element={<Posts username={username} posts={posts} setPosts={setPosts} />} />
+        <Route path="/posts/:id" element={<Posts username={username} posts={posts} setPosts={setPosts} />} />
         <Route path="/friends" element={<Friends friendsList={friendsList} setFriendsList={setFriendsList} />} />
         <Route path="/albums" element={<Albums />} />
 

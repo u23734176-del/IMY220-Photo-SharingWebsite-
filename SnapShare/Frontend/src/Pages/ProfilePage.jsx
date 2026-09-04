@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import FriendsComponent from '../components/FriendsComponent';
+import ProfilePreview from '../components/ProfilePreview';
 
 function ProfilePage({ users = [], friendsList = [] }) {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  // Toggle state for Profile Preview modal/card
+  const [showPreview, setShowPreview] = useState(false)
 
   // Helper to extract matching user or fallback to Guest
   const getProfileData = (userId) => {
@@ -22,7 +26,7 @@ function ProfilePage({ users = [], friendsList = [] }) {
     };
   };
 
-  // Track prevId to sync state directly during render when route parameter changes
+  // Track prevId to sync with Current ID
   const [prevId, setPrevId] = useState(id);
   const [userProfile, setUserProfile] = useState(() => getProfileData(id));
 
@@ -42,9 +46,8 @@ function ProfilePage({ users = [], friendsList = [] }) {
 
   const handleSaveEdit = (field) => {
     setUserProfile((prev) => ({
-      ...prev,
-      [field]: tempValue
-    }));
+      ...prev, [field]: tempValue
+        }));
     setEditingField(null);
     setTempValue("");
   };
@@ -56,6 +59,8 @@ function ProfilePage({ users = [], friendsList = [] }) {
   const handleDeleteAccount = () => {
     alert("Account deletion triggered.");
   };
+
+  
 
   return (
     <main>
@@ -230,8 +235,25 @@ function ProfilePage({ users = [], friendsList = [] }) {
         <ul>
           <li>Preferences</li>
           <li>Language</li>
-          <li>Notification options</li>
+          
         </ul>
+      </section>
+      {/* Preview Profile Toggle Button */}
+      <section>
+        <div>
+          <button type="button" onClick={() => setShowPreview(!showPreview)}>
+            {showPreview ? "Hide Preview" : "Preview Profile"}
+          </button>
+        </div>
+
+        {/* Conditionally Rendered Profile Preview Component */}
+        {showPreview && (
+          <div>
+            <hr />
+            <ProfilePreview user={userProfile} />
+            <hr />
+          </div>
+        )}
       </section>
 
       {/* Bottom Actions */}

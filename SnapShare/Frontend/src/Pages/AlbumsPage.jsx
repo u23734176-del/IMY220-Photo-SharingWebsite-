@@ -1,7 +1,9 @@
+import UnderConstrction from "../components/underConstruction";
+
 function Albums(){
      return (
         <div>
-            Albums Page
+            <UnderConstrction/>
         </div>
     )
 }

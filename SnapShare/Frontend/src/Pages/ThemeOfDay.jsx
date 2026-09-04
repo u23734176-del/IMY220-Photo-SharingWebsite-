@@ -1,7 +1,9 @@
+import UnderConstrction from "../components/underConstruction";
+
 function ThemeOfDay(){
     return (
         <div>
-            ThemeOfPage Page
+            <UnderConstrction/>
         </div>
     )
 }

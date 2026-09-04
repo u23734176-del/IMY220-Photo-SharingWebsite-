@@ -1,7 +1,10 @@
+
+import UnderConstrction from "../components/underConstruction";
+
 function Friends(){
      return (
         <div>
-            Friends Page
+            <UnderConstrction/>
         </div>
     )
 }
