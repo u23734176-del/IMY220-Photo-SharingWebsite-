@@ -1,147 +1,100 @@
 // src/Pages/PostPage.jsx
 
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import UsersPosts from '../components/UsersPosts';
+import { useParams , useNavigate } from 'react-router-dom';
+import Post from '../components/Post';
+import CreatePostForm from '../components/createPostForm';
+import FeedFilters from '../components/FeedFilters';
 
-function Posts({ username = "Guest", posts = [], setPosts }) {
+function Posts({ username, posts = [], setPosts }) {
+
   const { id } = useParams();
+  const [activityFilter, setActivityFilter] = useState("newest");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
-  // Filter posts if an ID is present in the URL parameter
-  const displayedPosts = id 
-    ? posts.filter((p) => p.id === Number(id))
-    : posts;
+  const navigate = useNavigate();//url to the profile page 
 
-  // Form toggle and inputs for creating a new post
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newCaption, setNewCaption] = useState("");
-  const [newCategory, setNewCategory] = useState("");
-  const [newImage, setNewImage] = useState(null);
+  const activeAuthor = id || username || "tadiwanashe";
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setNewImage(URL.createObjectURL(e.target.files[0]));
-    }
-  };
-
-  const handleCreatePost = (e) => {
-    e.preventDefault();
-    if (!newCaption.trim()) return;
-
-    const newPostObj = {
-      id: Date.now(),
-      image: newImage || "../assets/logo.png",
-      caption: newCaption.trim(),
-      author: username || "Guest",
-      category: newCategory || "Other",
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      likes: 0,
-      comments: []
-    };
-
-    if (setPosts) {
-      setPosts([newPostObj, ...posts]);
-    }
-
-    setNewCaption("");
-    setNewCategory("");
-    setNewImage(null);
-    setShowCreateForm(false);
+  const handleAddPost = (newPost) => {
+    setPosts((prevPosts) => [newPost, ...prevPosts]);
   };
 
   const handleUpdatePost = (updatedPost) => {
-    if (setPosts) {
-      setPosts(posts.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
-    }
+    setPosts((prevPosts) =>
+      prevPosts.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+    );
   };
+
+  // Filter posts belonging to active user
+  let userPosts = posts.filter((post) => post.author === activeAuthor);
+
+  // Filter by selected category
+  if (categoryFilter) {
+    userPosts = userPosts.filter((post) => post.category === categoryFilter);
+  }
+  
+
+  // Apply sorting options matching FeedFilters values
+  const sortedPosts = [...userPosts].sort((a, b) => {
+    if (activityFilter === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    if (activityFilter === "oldest") {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    if (activityFilter === "mostLiked") {
+      return (b.likes || 0) - (a.likes || 0);
+    }
+    if (activityFilter === "mostCommented") {
+      return (b.comments?.length || 0) - (a.comments?.length || 0);
+    }
+    return 0;
+  });
+
+ const onNavigateProfile = ()=> {
+      navigate("/profile");
+ }
 
   return (
     <main>
-      <h2>Posts Feed</h2>
+      <h2>Posts by {activeAuthor}</h2>
 
-      {/* Button to toggle Post Creation Form */}
-      <div>
-        <button type="button" onClick={() => setShowCreateForm(!showCreateForm)}>
-          {showCreateForm ? "Cancel" : "Create Post"}
-        </button>
-      </div>
-
-      {/*  Filters */}
-      <div>
-        <select id="filter">
-          <option value="global">Filters</option>
-          <option value="newest">Recently Posted</option>
-          <option value="mostShared">Most Liked</option>
-          <option value="mostLiked">Most Commented</option>
-        </select>
-      </div>
-
-      {/* Create Post Form */}
-      {showCreateForm && (
-        <form onSubmit={handleCreatePost}>
-          <h3>Create a New Post</h3>
-
-          <div>
-            <label>Caption: </label>
-            <input
-              type="text"
-              value={newCaption}
-              onChange={(e) => setNewCaption(e.target.value)}
-              placeholder="What's on your mind?"
-              required
-            />
-          </div>
-
-          <div>
-            <label>Category: </label>
-            <select 
-              id="Categories-filter"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-            >
-              <option value="">Categories</option>
-              <option value="nature">Nature</option>
-              <option value="Travel">Travel</option>
-              <option value="Animals">People</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Technology">Technology</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label>Upload Image: </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-          </div>
-
-          {newImage && (
-            <div>
-              <p>Preview:</p>
-              <img src={newImage} alt="Post preview" width="120" />
-            </div>
-          )}
-
-          <button type="submit">Submit Post</button>
-        </form>
-      )}
+      {/* Post Creation Form */}
+      <CreatePostForm onAddPost={handleAddPost} currentUser={activeAuthor} />
 
       <hr />
 
+       {/* Profile Button / Link */}
+      <div>
+        <button type="button" onClick={onNavigateProfile}>
+          My Profile ({username || "Guest"})
+        </button>
+      </div>
+
+      {/* Shared Feed Filters Component */}
+      <FeedFilters
+        selectedActivity={activityFilter}
+        onActivityChange={setActivityFilter}
+        selectedCategory={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+      />
+
+      <hr />
+
+      {/* User Posts Display */}
       <section>
-        {displayedPosts.length > 0 ? (
-          displayedPosts.map((post) => (
-            <UsersPosts 
-              key={post.id} 
-              post={post} 
-              onUpdatePost={handleUpdatePost} 
+        {sortedPosts.length > 0 ? (
+          sortedPosts.map((postItem) => (
+            <Post
+              key={postItem.id}
+              post={postItem}
+              onUpdatePost={handleUpdatePost}
+              isEditable={true}
             />
           ))
         ) : (
-          <p>No posts found for this ID.</p>
+          <p>No posts found for this user.</p>
         )}
       </section>
     </main>
