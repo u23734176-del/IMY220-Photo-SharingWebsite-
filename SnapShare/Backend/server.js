@@ -1,51 +1,25 @@
 // Server-side = Runs in Node.js and handles Express + Socket.IO
-
 const http = require("http"); 
 const express = require("express"); 
 const { Server } = require("socket.io"); 
 
 const app = express(); 
 const server = http.createServer(app); 
-const io = new Server(server); 
+const io = new Server(server);
+
+const PORT = 3001;
+
+//Monogo Database
+import cors from "cors";
+import dotenv from "dotenv";
+import { connectDB , getDB } from "./database"; /// databse file
+
+dotenv.config();
+
 
 // Middleware
 app.use(express.json()); // Parses JSON payloads from POST requests
 app.use(express.static("public")); 
-
-        const DUMMY_USERS = [
-        {
-            id: 1 ,
-            username: "tadiwanashe",
-            firstname: "Tadiwanashe",
-            surname: "Chigeza",
-            email: "tadiwanashe@example.com",
-            password: "password123"
-        },
-        {
-            id: 2 ,
-            username: "john_doe",
-            firstname: "John",
-            surname: "Doe",
-            email: "john@example.com",
-            password: "password123"
-        },
-        {
-            id: 3 ,
-            username: "sarah_c",
-            firstname: "Sarah",
-            surname: "Connor",
-            email: "sarah@example.com",
-            password: "password123"
-        },
-        {
-            id: 4 ,
-            username: "alex_smith",
-            firstname: "Alex",
-            surname: "Smith",
-            email: "alex@example.com",
-            password: "password123"
-        }
-        ];
 
 // Stubbed Login Endpoint
 app.post("/api/login", (req, res) => {
@@ -159,7 +133,6 @@ io.on("connection", (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
     console.log(`Messenger server running on http://localhost:${PORT}`);
