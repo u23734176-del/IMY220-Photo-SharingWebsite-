@@ -34,13 +34,8 @@ function AlbumsPage({ username, posts = [] }) {
       <h2>{activeAuthor}'s Albums</h2>
 
       {/* Create New Album Section */}
-      <CreateAlbumForm
-        userPosts={userPosts}
-        onCreateAlbum={handleCreateAlbum}
-        currentUser={activeAuthor}
-      />
-
-      <hr />
+      <CreateAlbumForm userPosts={userPosts} onCreateAlbum={handleCreateAlbum} currentUser={activeAuthor} />
+      <hr/>
 
       {/* List of User Albums */}
       <section>
@@ -48,12 +43,7 @@ function AlbumsPage({ username, posts = [] }) {
         {userAlbums.length > 0 ? (
           userAlbums.map((albumItem) => (
             <div key={albumItem.id}>
-              <Album
-                album={albumItem}
-                userPosts={userPosts}
-                onUpdateAlbum={handleUpdateAlbum}
-                onDeleteAlbum={handleDeleteAlbum}
-              />
+              <Album album={albumItem} userPosts={userPosts} onUpdateAlbum={handleUpdateAlbum} onDeleteAlbum={handleDeleteAlbum}/>
               <hr />
             </div>
           ))
