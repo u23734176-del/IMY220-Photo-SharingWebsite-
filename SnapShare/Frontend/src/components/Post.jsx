@@ -1,79 +1,99 @@
+// src/components/Post.jsx
+
+// src/components/Post.jsx
+
 import { useState } from "react";
+import PostEditForm from "./PostEditForm";
+import PostActions from "./PostActions";
+import PostPreview from "./PostPreview";
 
-function Post({post}){
-    const [likesCount , setLikesCount] = useState(post.likes);
-    const [isLiked, setIsLiked] = useState(false);
-    const [commentsList, setCommentsList] = useState(post.comments || []);
-    const [commentInput, setCommentInput] = useState("");
+function Post({ post, onUpdatePost, isEditable = false }) {
+  const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [commentsList, setCommentsList] = useState(post.comments || []);
+  const [showPreview, setShowPreview] = useState(false);
 
-    // Toggle Like functionality
-        const handleLikeToggle = () => {
-            if (isLiked) {
-            setLikesCount(likesCount - 1);
-            setIsLiked(false);
-            } else {
-            setLikesCount(likesCount + 1);
-            setIsLiked(true);
-            }
-    };
-    // Add Comment functionality
-    const handleAddComment = (e) => {
-        e.preventDefault();
-        if (!commentInput.trim()) return;
+  const [isEditing, setIsEditing] = useState(false);
+  const [caption, setCaption] = useState(post.caption || "");
+  const [category, setCategory] = useState(post.category || "");
 
-        setCommentsList([...commentsList, commentInput.trim()]);
-        setCommentInput("");
-    };
-    return (
-    <article>
-    
-      {/* Post Image */}
+  const handleLikeToggle = () => {
+    setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1));
+    setIsLiked(!isLiked);
+  };
+
+  const handleAddComment = (newComment) => {
+    setCommentsList((prev) => [...prev, newComment]);
+  };
+
+  const handleSaveEdit = (e) => {
+    e.preventDefault();
+    if (onUpdatePost) {
+      onUpdatePost({ ...post, caption, category });
+    }
+    setIsEditing(false);
+  };
+
+  return (
+    <article style={{ border: "1px solid #ddd", margin: "10px", padding: "10px" }}>
+      {/* Clickable Post Trigger */}
+      <button 
+        type="button" 
+        onClick={() => setShowPreview(true)} 
+        style={{ background: "none", border: "none", textAlign: "left", cursor: "pointer", width: "100%" }}
+      >
+        <div>
+          <img src={post.image} alt={caption} style={{ maxWidth: "100%" }} />
+        </div>
+        <div>
+          <p><strong>Caption:</strong> {caption}</p>
+          <p><strong>Author:</strong> {post.author}</p>
+          <p><strong>Category:</strong> {category}</p>
+          <p><strong>Posted on:</strong> {post.createdAt}</p>
+        </div>
+      </button>
+
+      {/* Edit Mode Controls */}
+      {isEditing ? (
+        <PostEditForm
+          caption={caption}
+          category={category}
+          onCaptionChange={setCaption}
+          onCategoryChange={setCategory}
+          onSave={handleSaveEdit}
+          onCancel={() => setIsEditing(false)}
+        />
+      ) : (
+        (isEditable || onUpdatePost) && (
+          <div>
+            <button type="button" onClick={() => setIsEditing(true)}>
+              Edit Post
+            </button>
+          </div>
+        )
+      )}
+
+      {/* Likes Bar */}
+      <PostActions 
+        likesCount={likesCount} 
+        isLiked={isLiked} 
+        onLikeToggle={handleLikeToggle} 
+      />
+
+      {/* Comment Count Indicator Only */}
       <div>
-        <img src={post.image} alt={post.caption} />
+        <p><strong>Comments:</strong> {commentsList.length}</p>
       </div>
 
-      {/* Post Caption */}
-      <div>
-        <p><strong>Caption:</strong> {post.caption}</p>
-      </div>
-      {/* Author Header, Category, & Timestamp */}
-      <div>
-        <p><strong>Author:</strong> {post.author}</p>
-        <p><strong>Category:</strong> {post.category}</p>
-        <p><strong>Posted on:</strong> {post.createdAt}</p>
-      </div>
-      
-
-      {/* Likes Section */}
-      <div>
-        <button type="button" onClick={handleLikeToggle}>
-          {isLiked ? "Unlike" : "Like"}
-        </button>
-        <span> {likesCount} Likes</span>
-      </div>
-
-      {/* Comment Section */}
-      <section>
-        <h4>Comments ({commentsList.length})</h4>
-
-        {/* Display Comments */}
-        <ul>
-          {commentsList.map((comment, index) => (
-            <li key={index}>{comment}</li>
-          ))}
-        </ul>
-
-        {/* Add Comment Input */}
-        <form onSubmit={handleAddComment}>
-          <input
-            type="text"
-            value={commentInput}
-            onChange={(e) => setCommentInput(e.target.value)}
-            placeholder="Write a comment..."
-          />
-          <button type="submit">Post</button>
-        </form>
-      </section>
+      {/* Modal / Preview Display */}
+      {showPreview && (
+        <PostPreview 
+          post={{ ...post, caption, category }} 
+          commentsList={commentsList} 
+          onAddComment={handleAddComment} 
+          onClose={() => setShowPreview(false)} 
+        />
+      )}
     </article>
   );
 }

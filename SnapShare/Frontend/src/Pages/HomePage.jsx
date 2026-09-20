@@ -1,55 +1,42 @@
-// HomePage.jsx
-import Post from '../components/Post';
-import { useNavigate } from 'react-router-dom';
 
-function HomePage({ username, posts }) {
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Post from '../components/Post';
+import HomeHeader from '../components/HomeHeader';
+import FeedFilters from '../components/FeedFilters';
+
+function HomePage({ username, posts = [], onUpdatePost }) {
   const navigate = useNavigate();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activityFilter, setActivityFilter] = useState("global");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   return (
     <main>
-      {/* Profile Button / Link */}
-      <div>
-        <button type="button" onClick={() => navigate("/profile")}>
-          My Profile ({username || "Guest"})
-        </button>
-      </div>
+      <HomeHeader 
+        username={username} 
+        onNavigateProfile={() => navigate("/profile")}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
-      {/* Top Search Bar */}
-      <div>
-        <button type="button">Search Icon</button>
-        <input type="text" placeholder="Search Bar" />
-      </div>
+      <FeedFilters 
+        selectedActivity={activityFilter}
+        onActivityChange={setActivityFilter}
+        selectedCategory={categoryFilter}
+        onCategoryChange={setCategoryFilter}
+      />
 
-      {/* Page Description */}
-      <div>
-        <p>"See what people are posting"</p>
-      </div>
-
-      {/* Dropdown Filters */}
-      <div>
-        <select id="global-activity">
-          <option value="global">Global Activity</option>
-          <option value="newest">Recently Posted</option>
-          <option value="mostShared">Most Liked</option>
-          <option value="mostLiked">Most Commented</option>
-        </select>
-
-        <select id="Categories-filter">
-          <option value="">Categories</option>
-          <option value="nature">Nature</option>
-          <option value="Travel">Travel</option>
-          <option value="Animals">People</option>
-          <option value="Fashion">Fashion</option>
-          <option value="Technology">Technology</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      {/* Feed Posts Grid using central state */}
+      {/* Feed Posts Grid */}
       <section>
         {posts && posts.length > 0 ? (
           posts.map((postItem) => (
-            <Post key={postItem.id} post={postItem} />
+            <Post 
+              key={postItem.id} 
+              post={postItem} 
+              onUpdatePost={onUpdatePost}
+            />
           ))
         ) : (
           <p>No posts available.</p>

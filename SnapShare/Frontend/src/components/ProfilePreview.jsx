@@ -20,7 +20,7 @@ function ProfilePreview({ user = {} }) {
       <div>
         <h3>{username}</h3>
         <p><strong>Pronouns:</strong> {pronouns}</p>
-        <p><strong>Description:</strong> {bio}</p>
+        <p><strong>Bio:</strong> {bio}</p>
       </div>
 
       <div>
