@@ -8,26 +8,35 @@ function CreatePostForm({ onAddPost, currentUser }) {
   const [caption, setCaption] = useState("");
   const [category, setCategory] = useState("Nature");
   const [image, setImage] = useState("");
+  const [hashTags, setHashTags] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!caption.trim()) return;
 
+    // Convert raw hashtag input into array of strings prefixed with '#'
+    const formattedTags = hashTags
+      .split(/[\s,]+/)
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+      .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`));
+
     const newPost = {
-      id: Date.now(),
-      image: image.trim() || "../assets/logo.png",
+      username: currentUser || "PixelNomad",
+      imageURL: image.trim() || "../assets/logo.png",
       caption: caption.trim(),
-      author: currentUser || "Guest",
       category,
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      likes: 0,
-      comments: []
+      hashTags: formattedTags,
+      createdAt: new Date().toISOString()
     };
 
     onAddPost(newPost);
+
+    // Reset Form Fields
     setCaption("");
     setImage("");
     setCategory("Nature");
+    setHashTags("");
   };
 
   return (
@@ -65,6 +74,15 @@ function CreatePostForm({ onAddPost, currentUser }) {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label>Hashtags: </label>
+          <input
+            type="text"
+            value={hashTags}
+            onChange={(e) => setHashTags(e.target.value)}
+            placeholder="#sunset #nature or sunset, nature"
+          />
         </div>
         <button type="submit">Publish Post</button>
       </form>

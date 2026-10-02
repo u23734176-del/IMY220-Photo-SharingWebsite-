@@ -1,139 +1,62 @@
-// Server-side = Runs in Node.js and handles Express + Socket.IO
-const http = require("http"); 
-const express = require("express"); 
-const { Server } = require("socket.io"); 
 
-const app = express(); 
-const server = http.createServer(app); 
-const io = new Server(server);
+// Sever.js  for the  API 
 
-const PORT = 3001;
+const http = require("http");
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const { Server } = require("socket.io");
 
-//Monogo Database
-import cors from "cors";
-import dotenv from "dotenv";
-import { connectDB , getDB } from "./database"; /// databse file
+const { connectDB } = require("./database");
+
+// Import API Routes
+const profileRoutes = require("./api/PorfileRoutes");
+const friendsRoutes = require("./api/FriendsRoutes");
+const postRoutes = require("./api/PostRoutes");
+const albumRoutes = require("./api/AlbumRoutes");
 
 dotenv.config();
 
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(express.json()); // Parses JSON payloads from POST requests
-app.use(express.static("public")); 
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
 
-// Stubbed Login Endpoint
-app.post("/api/login", (req, res) => {
-  const { username, password } = req.body;
-    //validate request
-  if (!username || !password) {
-    return res.status(400).json({ error: "Username and password are required." });
-  }
-  // Search for username (case-insensitive)
-  const userMatch = DUMMY_USERS.find(
-        (u) => u.username.toLowerCase() === username.trim().toLowerCase()
-    );
+// Mount API routes
+app.use("/api", profileRoutes);
+app.use("/api", friendsRoutes);
+app.use("/api", postRoutes);
+app.use("/api", albumRoutes);
 
-  if (!userMatch) {
-        return res.status(401).json({ error: "Username does not exist." });
-  }
-
-  if (userMatch.password !== password) {
-        return res.status(401).json({ error: "Incorrect password entered." });
-  }
-
-  //response returning dummy user data
-  return res.status(200).json({
-    message: "Login-in successful!",
-    user: {
-      username: userMatch.username,
-      firstname: userMatch.firstname,
-      surname: userMatch.surname,
-      email: userMatch.email
-    }
-  });
-});
-
-
-
-// Stubbed Sign-Up Endpoint
-
-app.post("/api/signup", (req, res) => {
-  const { firstname, surname, username, email, password } = req.body;
-
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: "Missing required sign-up fields." });
-  }
-
-  //Check if username already exists
-  const usernameExists = DUMMY_USERS.some(
-    (u) => u.username.toLowerCase() === username.trim().toLowerCase()
-  );
-  if (usernameExists) {
-    return res.status(400).json({ error: "Username is already taken." });
-  }
-
-  // Check if email already exists
-  const emailExists = DUMMY_USERS.some(
-    (u) => u.email.toLowerCase() === email.trim().toLowerCase()
-  );
-  if (emailExists) {
-    return res.status(400).json({ error: "Email address is already in use." });
-  }
-
-  //Return created user structure without mutating DUMMY_USERS
-  return res.status(201).json({
-    message: "Sign-up successful!",
-    user: {
-      username: username,
-      firstname: firstname || "User",
-      surname: surname || "Name",
-      email: email
-    }
-  });
-});
-
+// Socket.IO real-time active user tracking
 function updateUserCount() {
-    const userCount = io.sockets.sockets.size;
-    io.emit("userCount", userCount);
+  const userCount = io.sockets.sockets.size;
+  io.emit("userCount", userCount);
 }
 
 io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+  console.log(`User connected: ${socket.id}`);
+  updateUserCount();
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
     updateUserCount();
-
-    socket.emit("systemMessage", {
-        text: "A user connected."
-    });
-        
-    socket.on("hello", (data) => {
-        // Validate username
-        if (!data.username || data.username.trim() === "") {
-            socket.emit("messageError", "Please enter a display name.");
-            return;
-        }
-
-        // Validate message
-        if (!data.text || data.text.trim() === "") {
-            socket.emit("messageError", "Please enter a message.");
-            return;
-        }
-
-        const message = {
-            username: data.username,
-            text: data.text,
-            timestamp: new Date().toISOString()
-        };
-          
-        io.emit("hello", message); // Broadcast hello message 
-    });
-
-    socket.on("disconnect", () => {
-        console.log(`User disconnected: ${socket.id}`);
-        updateUserCount();
-    });
+  });
 });
 
-
-server.listen(PORT, () => {
-    console.log(`Messenger server running on http://localhost:${PORT}`);
-});
+// Connect to MongoDB and start server
+connectDB()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB:", err);
+  });
