@@ -1,9 +1,17 @@
 // This file handles the routes for the APi
-
+// APIRoutes.js / PorfileRoutes.js
 
 const express = require("express");
 const router = express.Router();
-const { loginUser, signUp, logoutUser, getProfile, updateProfile, deleteProfile } = require("./PorfilesLogic");
+const {
+  loginUser,
+  signUp,
+  logoutUser,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+  searchUsers
+} = require("./PorfilesLogic");
 
 // Login API
 router.post("/login", async (req, res) => {
@@ -59,6 +67,17 @@ router.post("/logout", async (req, res) => {
   }
 });
 
+// GET /api/users/search?q=term  (search users by username / first name / surname)
+router.get("/users/search", async (req, res) => {
+  try {
+    const result = await searchUsers(req.query.q);
+    return res.status(result.status).json({ users: result.users });
+  } catch (error) {
+    console.error("Search Users Error:", error);
+    return res.status(500).json({ error: "Internal server error while searching users." });
+  }
+});
+
 // GET /api/profile/:username (View Own Profile OR View Other Users' Profiles)
 router.get("/profile/:username", async (req, res) => {
   try {
@@ -82,7 +101,9 @@ router.get("/profile/:username", async (req, res) => {
 router.put("/profile/:username", async (req, res) => {
   try {
     const { username } = req.params;
-    const result = await updateProfile(username, req.body);
+    const { requesterUsername, ...updateData } = req.body || {};
+
+    const result = await updateProfile(username, updateData, requesterUsername);
 
     if (!result.success) {
       return res.status(result.status).json({ error: result.message });

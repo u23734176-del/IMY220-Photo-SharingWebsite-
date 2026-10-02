@@ -2,11 +2,14 @@
 
 function AccountActions ( {onLogout , onDeleteAccount}){
         return (    
-            <div>
+            <div className="account-actions">
                 <button type="button" onClick={onLogout}>
                     Log out
                 </button>
-                <button type="button" onClick={onDeleteAccount}>
+                <button type="button" 
+                onClick={onDeleteAccount}
+                style={{ backgroundColor: "#dc3545", color: "#fff", marginLeft: "10px" }}
+                >
                     Delete Account
                 </button> 
             </div>

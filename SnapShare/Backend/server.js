@@ -1,4 +1,3 @@
-
 // Sever.js  for the  API 
 
 const http = require("http");
@@ -14,6 +13,7 @@ const profileRoutes = require("./api/PorfileRoutes");
 const friendsRoutes = require("./api/FriendsRoutes");
 const postRoutes = require("./api/PostRoutes");
 const albumRoutes = require("./api/AlbumRoutes");
+const { UPLOAD_DIR } = require("./api/upload");
 
 dotenv.config();
 
@@ -27,6 +27,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
+// Serve uploaded post images at  http://localhost:3001/uploads/<file>
+app.use("/uploads", express.static(UPLOAD_DIR));
 
 // Mount API routes
 app.use("/api", profileRoutes);

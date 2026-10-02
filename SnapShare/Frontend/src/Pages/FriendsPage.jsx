@@ -1,21 +1,21 @@
-
 // src/Pages/FriendsPage.jsx
-
 import FriendsComponent from '../components/FriendsComponent';
 import UserSearchSection from '../components/UserSearchSection';
 
-function Friends({ friendsList = [], users = [] }) {
+// FriendsComponent now loads friends, handles accept/decline and unfriend itself,
+// so this page only needs to hand it the logged-in username.
+function Friends({ username, friendsList = [] }) {
   return (
     <main>
-      <h2>Friends & Community</h2>
+      <h2>Friends & Community ({username || "Guest"})</h2>
 
-      {/* Your Setup Friends Component */}
-      <FriendsComponent friendsList={friendsList} />
+      {/* Friends list + pending requests */}
+      <FriendsComponent username={username} friendsList={friendsList} />
 
       <hr />
 
-      {/* Search Bar & User Previews */}
-      <UserSearchSection users={users} />
+      {/* Community search + Add Friend */}
+      <UserSearchSection username={username} />
     </main>
   );
 }

@@ -1,11 +1,8 @@
-// Login in page
-//Tadiwanashe Chigeza u23734276
-
-// Login.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-function Login({ username = "", setUsername }) {
+function Login({ setUsername }) {
+  const [loginUsername, setLoginUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -32,8 +29,7 @@ function Login({ username = "", setUsername }) {
     event.preventDefault();
     setErrorMessage("");
 
-    // Run client-side format checks
-    const validationError = validateForm(username, password);
+    const validationError = validateForm(loginUsername, password);
     if (validationError) {
       setErrorMessage(validationError);
       return;
@@ -44,20 +40,19 @@ function Login({ username = "", setUsername }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: username.trim(),
+          username: loginUsername.trim(),
           password: password,
         }),
       });
 
       const data = await response.json();
 
-      // Handles 400 & 401 errors from server ("Username does not exist" or "Incorrect password")
       if (!response.ok) {
         setErrorMessage(data.error || "Login failed.");
         return;
       }
 
-      // Update global username state on successful authentication
+      // Update global app state with authenticated user data
       if (data.user && data.user.username) {
         setUsername(data.user.username);
       }
@@ -66,7 +61,7 @@ function Login({ username = "", setUsername }) {
       navigate("/home");
     } catch (error) {
       console.error("Fetch Error:", error);
-      setErrorMessage("Server connection error.");
+      setErrorMessage("Unable to connect to Express backend.");
     }
   };
 
@@ -82,8 +77,8 @@ function Login({ username = "", setUsername }) {
             <input
               type="text"
               id="username"
-              value={username || ""}
-              onChange={(event) => setUsername(event.target.value)}
+              value={loginUsername}
+              onChange={(event) => setLoginUsername(event.target.value)}
               placeholder="Enter your Username"
             />
           </div>
@@ -94,7 +89,7 @@ function Login({ username = "", setUsername }) {
             <input
               type={showPassword ? "text" : "password"}
               id="password"
-              value={password || ""}
+              value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
             />

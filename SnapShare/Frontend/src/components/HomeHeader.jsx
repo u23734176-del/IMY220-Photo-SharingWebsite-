@@ -1,9 +1,8 @@
-// src/components/HomeHeader.jsx
-
+// HomeHeader.jsx
 function HomeHeader({ username, onNavigateProfile, searchQuery, onSearchChange }) {
   return (
-    <header>
-      {/* Profile Button / Link */}
+    <header className="home-header">
+      {/* Active Logged-in User Profile Navigation */}
       <div>
         <button type="button" onClick={onNavigateProfile}>
           My Profile ({username || "Guest"})
@@ -15,13 +14,13 @@ function HomeHeader({ username, onNavigateProfile, searchQuery, onSearchChange }
         <button type="button">Search Icon</button>
         <input 
           type="text" 
-          placeholder="Search Bar" 
+          placeholder="Search posts or users..." 
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
 
-      {/* Page Description */}
+      {/* Tagline */}
       <div>
         <p>"See what people are posting"</p>
       </div>

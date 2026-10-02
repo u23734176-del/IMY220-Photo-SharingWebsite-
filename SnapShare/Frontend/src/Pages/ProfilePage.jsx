@@ -1,115 +1,244 @@
-
-import { useState } from 'react';
+// src/Pages/ProfilePage.jsx
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-// Componeents import
-import FriendsComponent from '../components/FriendsComponent'; //Friend Componet
-import EditableField from '../components/EditableField'; // edit fields componenets
-import ProfileHeader from '../components/ProfileHeader'; // Profile Header  componets
-import AccountActions from '../components/AccountActions'; //Account actions compoenets
 
+import FriendsComponent from '../components/FriendsComponent';
+import EditableField from '../components/EditableField';
+import ProfileHeader from '../components/ProfileHeader';
+import AccountActions from '../components/AccountActions';
 
-const ACCOUNT_FIELDS = [ 
-    {fieldName : "firstname" , label : "First Name"},
-    {fieldName : "surname" , label : "Surname"},
-    {fieldName : "username" , label: "Username"},
-    {fieldName : "email" , label : "Email Address" , type: "email"},
-    {fieldName : "pronouns" , label: "Pronouns"},
-    { fieldName: "bio" , label: "Bio"}
+const ACCOUNT_FIELDS = [
+  { fieldName: "firstname", label: "First Name" },
+  { fieldName: "surname", label: "Surname" },
+  { fieldName: "username", label: "Username" },
+  { fieldName: "email", label: "Email Address", type: "email" },
+  { fieldName: "pronouns", label: "Pronouns" },
+  { fieldName: "bio", label: "Bio" },
 ];
 
+const JSON_HEADERS = { "Content-Type": "application/json" };
 
-
-function ProfilePage({ users = [], friendsList = [] }) {
+function ProfilePage({ username, setUsername, users = [], friendsList = [] }) {
   const navigate = useNavigate();
-  const { id } = useParams(); //id from paramaters 
-  
-  //different states 
+  const { id } = useParams();
+
+  const activeUser = id || username || "Guest";
+  const isLoggedIn = !!username;
+  const isOwnProfile = !id || id === username;
+
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState("");
-  const [ prevId , setPrevId] = useState(id);
+  const [actionError, setActionError] = useState("");
+  const [success, setSuccess] = useState("");
 
+  // The fetched profile is stored with the username it was loaded for,
+  // so nothing needs to be reset synchronously inside the effect.
+  const [fetched, setFetched] = useState({ forUser: "", profile: null, error: "" });
 
-  //get the respective profile from the Paramaters
-  const getProfileData = (userId)=>{
-      const currentProfile = users.find((user) => user.id ===  (userId));
-      return currentProfile? { ... currentProfile}:{
-          id: "Guest",
-         username: "Guest",
-          firstname: "Guest",
-          surname: "User",
-          email: "guest@example.com",
-          pronouns: "They/Them",
-          bio: "You are currently browsing in Guest Mode."
-      };
+  // Same placeholder profile as the original page
+  const defaultProfile = {
+    id: activeUser,
+    username: activeUser,
+    firstname: activeUser !== "Guest" ? activeUser : "Guest",
+    surname: "User",
+    email: "user@example.com",
+    pronouns: "They/Them",
+    bio: "Welcome to my profile!",
   };
 
-  // set Porfile asa a state
-  const [userProfile , setUserProfile] =  useState(()=> getProfileData(id));
+  const localUser = users.find((u) => u.username === activeUser || u.id === activeUser);
+  const isCurrent = fetched.forUser === activeUser;
+  const userProfile = (isCurrent && fetched.profile) || localUser || defaultProfile;
+  const error = actionError || (isCurrent ? fetched.error : "");
 
-  if(id !== prevId){ //update the id ( profile)
-      setPrevId(id);
-      setUserProfile(getProfileData(id));
-  }
-  //edit the Account details
+  // ---------- LOAD PROFILE ----------
+  useEffect(() => {
+    if (!activeUser || activeUser === "Guest") return undefined;
+
+    let cancelled = false;
+
+    async function fetchProfile() {
+      try {
+        const response = await fetch(`/api/profile/${encodeURIComponent(activeUser)}`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not load profile.");
+        if (!cancelled) setFetched({ forUser: activeUser, profile: data.user, error: "" });
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+        if (!cancelled) setFetched({ forUser: activeUser, profile: null, error: err.message });
+      }
+    }
+
+    fetchProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeUser]);
+
+  // ---------- EDIT ----------
   const handleStartEdit = (field, currentValue = "") => {
-      setEditingField(field);
-      setTempValue(currentValue);
+    setActionError("");
+    setSuccess("");
+    setEditingField(field);
+    setTempValue(currentValue);
   };
-  const handleSaveEdit = (field) => {
-      setUserProfile((prev)=>({...prev, [field]: tempValue}))
+
+  const handleCancelEdit = () => {
+    setEditingField(null);
+    setTempValue("");
+  };
+
+  const handleSaveEdit = async (field) => {
+    setActionError("");
+    setSuccess("");
+
+    if (!isLoggedIn) {
+      setActionError("Please log in to edit your profile.");
+      return;
+    }
+
+    const value = field === "password" ? tempValue : tempValue.trim();
+
+    try {
+      const response = await fetch(`/api/profile/${encodeURIComponent(activeUser)}`, {
+        method: "PUT",
+        headers: JSON_HEADERS,
+        body: JSON.stringify({
+          requesterUsername: username,
+          [field]: value,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not update profile.");
+
+      // Only update the screen once the server has accepted the change
+      const renamedSelf = field === "username" && isOwnProfile;
+      setFetched({
+        forUser: renamedSelf ? data.user.username : activeUser,
+        profile: data.user,
+        error: "",
+      });
       setEditingField(null);
       setTempValue("");
-  }
-  
-  //log out or delete account functions
-  const handleLogout = () => navigate("/login");
-  const handleDeleteAccount = () => alert('Account deletion triggered');
+      setSuccess(field === "password" ? "Password updated." : "Profile updated.");
 
-  //render display
-  return(
-      <div id='main_page'>
-        <ProfileHeader user={userProfile}/>
-        <FriendsComponent friendsList={friendsList} />
+      // Keep the app in sync if the logged-in user renamed themselves
+      if (renamedSelf && setUsername) {
+        setUsername(data.user.username);
+        if (id) navigate("/profile", { replace: true });
+      }
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      setActionError(err.message);
+    }
+  };
 
-        <section>
-            <h3> Account Management</h3>
-            <div>
-              {ACCOUNT_FIELDS.map(({ fieldName, label, type }) => (
-                <EditableField
-                     key={fieldName}
-                    fieldName={fieldName}
-                    label={label}
-                    type={type}
-                    value={userProfile[fieldName]}
-                    editingField={editingField}
-                    tempValue={tempValue}
-                    onStartEdit={handleStartEdit}
-                    onSaveEdit={handleSaveEdit}
-                    onCancel={() => setEditingField(null)}
-                    onChange={setTempValue}
-            />
-          ))}
-          
+  // ---------- LOG OUT ----------
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ username }),
+      });
+    } catch (err) {
+      console.error("Logout request failed:", err);
+    }
+
+    if (setUsername) setUsername("");
+    navigate("/login");
+  };
+
+  // ---------- DELETE ----------
+  const handleDeleteAccount = async () => {
+    if (!isLoggedIn || activeUser === "Guest") {
+      setActionError("Please log in to delete an account.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    setActionError("");
+
+    try {
+      const response = await fetch(`/api/profile/${encodeURIComponent(activeUser)}`, {
+        method: "DELETE",
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ requesterUsername: username }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not delete account.");
+
+      if (isOwnProfile) {
+        if (setUsername) setUsername("");
+        navigate("/signUp");
+      } else {
+        navigate("/home");
+      }
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      setActionError(err.message);
+    }
+  };
+
+  return (
+    <div id="main_page">
+      <ProfileHeader user={userProfile} />
+
+      {/* Only load real friends / pending requests on your own profile,
+          so other people's requests are never shown or actionable */}
+      <FriendsComponent
+        username={isOwnProfile ? username : ""}
+        friendsList={friendsList}
+      />
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {success && <p style={{ color: "green" }}>{success}</p>}
+
+      <section>
+        <h3>Account Management</h3>
+        <div>
+          {ACCOUNT_FIELDS.map(({ fieldName, label, type }) => (
             <EditableField
-              fieldName="password"
-              type="password"
+              key={fieldName}
+              fieldName={fieldName}
+              label={label}
+              type={type}
+              value={userProfile[fieldName] || ""}
               editingField={editingField}
               tempValue={tempValue}
               onStartEdit={handleStartEdit}
               onSaveEdit={handleSaveEdit}
-              onCancel={() => setEditingField(null)}
+              onCancel={handleCancelEdit}
               onChange={setTempValue}
             />
-          
-            </div>
-        </section>
-      
-        <AccountActions 
-            onLogout={handleLogout} 
-            onDeleteAccount={handleDeleteAccount} 
+          ))}
+
+          <EditableField
+            fieldName="password"
+            label="Password"
+            type="password"
+            value="••••••••"
+            editingField={editingField}
+            tempValue={tempValue}
+            onStartEdit={handleStartEdit}
+            onSaveEdit={handleSaveEdit}
+            onCancel={handleCancelEdit}
+            onChange={setTempValue}
           />
-      </div>
-  )
+        </div>
+      </section>
+
+      {/* Actions allowed for active user */}
+      <AccountActions
+        onLogout={handleLogout}
+        onDeleteAccount={handleDeleteAccount}
+      />
+    </div>
+  );
 }
 
 export default ProfilePage;

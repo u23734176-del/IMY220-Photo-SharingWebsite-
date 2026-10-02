@@ -1,6 +1,15 @@
-//  Componetes for the Commit Sections
-
+// src/components/PostCommentSection.jsx
 import { useState } from 'react';
+
+// Comments can be plain strings (old data) or { username, comment, createdAt } objects
+const normalizeComment = (c) => {
+  if (typeof c === "string") return { name: "", text: c, date: "" };
+  return {
+    name: String(c?.username || c?.author || ""),
+    text: String(c?.comment || c?.text || c?.content || ""),
+    date: c?.createdAt ? new Date(c.createdAt).toLocaleString() : ""
+  };
+};
 
 function PostCommentSection({ comments = [], onAddComment }) {
   const [commentInput, setCommentInput] = useState("");
@@ -17,18 +26,24 @@ function PostCommentSection({ comments = [], onAddComment }) {
       <section>
         <h4>Comments ({comments.length})</h4>
         <ul>
-          {/* Parentheses added here for implicit JSX return */}
-          {comments.map((comment, index) => (
-            <li key={index}>{comment}</li>
-          ))}
+          {comments.map((c, index) => {
+            const { name, text, date } = normalizeComment(c);
+            return (
+              <li key={(c && c._id) || index}>
+                {name && <strong>{name}: </strong>}
+                {text}
+                {date && <small> ({date})</small>}
+              </li>
+            );
+          })}
         </ul>
       </section>
 
       <section>
         <form onSubmit={handleSubmit}>
-          <input 
-            type="text" 
-            value={commentInput} 
+          <input
+            type="text"
+            value={commentInput}
             onChange={(e) => setCommentInput(e.target.value)}
             placeholder="Write a comment..."
           />
@@ -40,4 +55,3 @@ function PostCommentSection({ comments = [], onAddComment }) {
 }
 
 export default PostCommentSection;
-

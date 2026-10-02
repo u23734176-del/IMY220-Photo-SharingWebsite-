@@ -1,248 +1,240 @@
 // Sign Up page 
-// Tadiwanashe Chigeza
 import { useState } from "react";
-import { Link , useNavigate } from "react-router-dom";
-// import {useNavigate} from "react-router-dom" // use to navigate to HomePage
+import { Link, useNavigate } from "react-router-dom";
 
-//validation logic
-const validateForm = (firstname ,surname ,username , email , password , confirmPassword , pronouns) =>{
-    
-    const nameRegex = /^[A-Za-z\s-]+$/; //Regex allowing uppercase, lowercase, spaces, and hyphens
+const validateForm = (firstname, surname, username, email, password, confirmPassword, pronouns) => {
+  const nameRegex = /^[A-Za-z\s-]+$/;
 
-    if(!firstname.trim()){//validate firstname
-            return "First name is required.";
-    }
-    if(!nameRegex.test(firstname.trim())){
-            return "First name can only contain letters, spaces, or hyphens.";
-    }
-    if (!surname.trim()) {//validate surname
-        return "Surname is required.";
-    }
-    if (!nameRegex.test(surname.trim())) {
-        return "Surname can only contain letters, spaces, or hyphens.";
-    }
+  if (!firstname.trim()) {
+    return "First name is required.";
+  }
+  if (!nameRegex.test(firstname.trim())) {
+    return "First name can only contain letters, spaces, or hyphens.";
+  }
+  if (!surname.trim()) {
+    return "Surname is required.";
+  }
+  if (!nameRegex.test(surname.trim())) {
+    return "Surname can only contain letters, spaces, or hyphens.";
+  }
+  if (!username.trim()) {
+    return "Username is required.";
+  }
+  if (username.trim().length < 3) {
+    return "Username must be at least 3 characters long.";
+  }
+  if (!email.trim()) {
+    return "Email is required.";
+  }
+  if (!email.includes("@") || !email.includes(".")) {
+    return "Please enter a valid email address.";
+  }
+  if (!password) {
+    return "Password is required.";
+  }
+  if (password.length < 6) {
+    return "Password must be at least 6 characters long.";
+  }
+  if (password !== confirmPassword) {
+    return "Passwords do not match.";
+  }
+  if (!pronouns) {
+    return "Please select your pronouns.";
+  }
+  return null;
+};
 
-    if (!username.trim()) { //validate username
-        return "Username is required.";
-    }
-    if (username.trim().length < 3) {
-        return "Username must be at least 3 characters long.";
+function SignUp({ setUsername }) {
+  const [firstname, setFirstname] = useState("");
+  const [surname, setSurname] = useState("");
+  const [usernameID, setUsernameID] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pronouns, setPronouns] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-    }if (!email.trim()) { //validate email
-        return "Email is required.";
-    }
-    if (!email.includes("@") || !email.includes(".")) {
-        return "Please enter a valid email address.";
-    }
+  const navigate = useNavigate();
 
-    if (!password) { //validate password
-        return "Password is required.";
-    }
-    if (password.length < 6) {
-        return "Password must be at least 6 characters long.";
-    }
-    if (password !== confirmPassword) {
-        return "Passwords do not match.";
-    }
-    if (!pronouns) {
-        return "Please select your pronouns.";
-    }
-    return null;
-}
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setErrorMessage("");
 
-function SignUp({setUsername}){
-        const [ firstname , setFirstname] = useState("");
-        const [ surname , setSurname] = useState("");
-        const [usernameID, setUsernameID] = useState("");
-        const [email, setEmail] = useState("");
-        const [password, setPassword] = useState("");
-        const [confirmPassword, setConfirmPassword] = useState("");
-        const [pronouns, setPronouns] = useState("");
-        const [showPassword, setShowPassword] = useState(false);
-        const [errorMessage, setErrorMessage] = useState("");
+    const validationError = validateForm(
+      firstname,
+      surname,
+      usernameID,
+      email,
+      password,
+      confirmPassword,
+      pronouns
+    );
 
-        const navigate = useNavigate();
-
-        const handleSubmit = async (event) => {
-        event.preventDefault();
-        setErrorMessage("");
-
-        // validation check
-        const validationError = validateForm(
-            firstname, 
-            surname, 
-            usernameID, 
-            email, 
-            password, 
-            confirmPassword,
-            pronouns
-        );
-        if (validationError) {
-            setErrorMessage(validationError);
-            return;
-        }
-        try {
-            const response = await fetch("/api/signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify( {
-                firstname: firstname.trim(),
-                surname: surname.trim(),
-                username: usernameID.trim(),
-                email: email.trim(),
-                password: password,
-                pronouns: pronouns,
-            }),
-        });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setErrorMessage(data.error || "Sign-up failed.");
+    if (validationError) {
+      setErrorMessage(validationError);
       return;
     }
 
-    // 3. Update global username state and redirect to home
+    try {
+      // Matches the backend endpoint route casing: /api/signUp
+      const response = await fetch("/api/signUp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstname: firstname.trim(),
+          surname: surname.trim(),
+          username: usernameID.trim(),
+          email: email.trim(),
+          password: password,
+          pronouns: pronouns,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.error || "Sign-up failed.");
+        return;
+      }
+
+      // Update global username state and navigate home
+      if (data.user && data.user.username) {
         setUsername(data.user.username);
-        navigate("/home");
-
+      }
+      navigate("/home");
     } catch (error) {
-            console.error("Fetch Error:", error);
-            setErrorMessage("Unable to connect to Express backend.");
-        }
-    };
-        
-    return (
-        <div>
-            <img src="../assets/logo.png" alt="SnapShare" />
-            <h1>Sign Up Account</h1>
-            <div id="Sign-up-container">
-                <form onSubmit={handleSubmit} noValidate>
-                    {/* First Name */}
-                    <div id="firstNameInput">
-                        <label htmlFor="firstname">First Name:</label>
-                        <br />
-                        <input
-                            type="text"
-                            id="firstname"
-                            value={firstname}
-                            onChange={(event) => setFirstname(event.target.value)}
-                            placeholder="Please enter your first name"
-                        />
-                    </div>
+      console.error("Fetch Error:", error);
+      setErrorMessage("Unable to connect to Express backend.");
+    }
+  };
 
-                    {/* Surname */}
-                    <div id="surNameInput">
-                        <label htmlFor="surname">Surname:</label>
-                        <br />
-                        <input
-                            type="text"
-                            id="surname"
-                            value={surname}
-                            onChange={(event) => setSurname(event.target.value)}
-                            placeholder="Please enter your surname"
-                        />
-                    </div>
+  return (
+    <div>
+      <img src="../assets/logo.png" alt="SnapShare" />
+      <h1>Sign Up Account</h1>
+      <div id="Sign-up-container">
+        <form onSubmit={handleSubmit} noValidate>
+          {/* First Name */}
+          <div id="firstNameInput">
+            <label htmlFor="firstname">First Name:</label>
+            <br />
+            <input
+              type="text"
+              id="firstname"
+              value={firstname}
+              onChange={(event) => setFirstname(event.target.value)}
+              placeholder="Please enter your first name"
+            />
+          </div>
 
-                     {/* Pronouns */}
-                    <div id="pronounsInput">
-                        <label htmlFor="pronouns">Pronouns:</label>
-                        <br />
+          {/* Surname */}
+          <div id="surNameInput">
+            <label htmlFor="surname">Surname:</label>
+            <br />
+            <input
+              type="text"
+              id="surname"
+              value={surname}
+              onChange={(event) => setSurname(event.target.value)}
+              placeholder="Please enter your surname"
+            />
+          </div>
 
-                        <select
-                            id="pronouns"
-                            value={pronouns}
-                            onChange={(event) => setPronouns(event.target.value)}
-                        >
-                            <option value="">Select your pronouns</option>
-                            <option value="he/him">He/Him</option>
-                            <option value="she/her">She/Her</option>
-                            <option value="they/them">They/Them</option>
-                            <option value="other">Other</option>
-                            <option value="prefer-not-to-say">Prefer not to say</option>
-                        </select>
-                    </div>
-                    
+          {/* Pronouns */}
+          <div id="pronounsInput">
+            <label htmlFor="pronouns">Pronouns:</label>
+            <br />
+            <select
+              id="pronouns"
+              value={pronouns}
+              onChange={(event) => setPronouns(event.target.value)}
+            >
+              <option value="">Select your pronouns</option>
+              <option value="he/him">He/Him</option>
+              <option value="she/her">She/Her</option>
+              <option value="they/them">They/Them</option>
+              <option value="other">Other</option>
+              <option value="prefer-not-to-say">Prefer not to say</option>
+            </select>
+          </div>
 
-                    {/* Username*/}
-                    <div id="usernameInput">
-                        <label htmlFor="usernameID">Username:</label>
-                        <br />
-                        <input
-                            type="text"
-                            id="usernameID"
-                            value={usernameID}
-                            onChange={(event) => setUsernameID(event.target.value)}
-                            placeholder="Choose a username"
-                        />
-                    </div>
+          {/* Username */}
+          <div id="usernameInput">
+            <label htmlFor="usernameID">Username:</label>
+            <br />
+            <input
+              type="text"
+              id="usernameID"
+              value={usernameID}
+              onChange={(event) => setUsernameID(event.target.value)}
+              placeholder="Choose a username"
+            />
+          </div>
 
-                    {/* Email */}
-                    <div id="emailInput">
-                        <label htmlFor="email">Email Address:</label>
-                        <br />
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            placeholder="Please enter your email"
-                        />
-                    </div>
+          {/* Email */}
+          <div id="emailInput">
+            <label htmlFor="email">Email Address:</label>
+            <br />
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Please enter your email"
+            />
+          </div>
 
-                    {/* Password */}
-                    <div id="passwordInput">
-                        <label htmlFor="password">Password:</label>
-                        <br />
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            id="password"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            placeholder="Enter password"
-                        />
-                    </div>
+          {/* Password */}
+          <div id="passwordInput">
+            <label htmlFor="password">Password:</label>
+            <br />
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter password"
+            />
+          </div>
 
-                    {/* Confirm Password */}
-                    <div id="confirmPasswordInput">
-                        <label htmlFor="confirmPassword">Confirm Password:</label>
-                        <br />
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            id="confirmPassword"
-                            value={confirmPassword}
-                            onChange={(event) => setConfirmPassword(event.target.value)}
-                            placeholder="Repeat password"
-                        />
-                        <br />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                        >
-                            {showPassword ? "Hide Passwords" : "Show Passwords"}
-                        </button>
-                    </div>
+          {/* Confirm Password */}
+          <div id="confirmPasswordInput">
+            <label htmlFor="confirmPassword">Confirm Password:</label>
+            <br />
+            <input
+              type={showPassword ? "text" : "password"}
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Repeat password"
+            />
+            <br />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "Hide Passwords" : "Show Passwords"}
+            </button>
+          </div>
 
-                    {/* Error display */}
-                    {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+          {/* Error display */}
+          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
 
-                    <br />
-                    <button type="submit">Sign Up</button>
-                </form>
-            </div>
-
-            <div id="SignUpInstead">
-        <p> Have an account?</p>
-            <Link to="/login">
-             <button>
-                Sign in 
-             </button>
-          </Link>
+          <br />
+          <button type="submit">Sign Up</button>
+        </form>
       </div>
 
-        </div>
-    );
+      <div id="SignUpInstead">
+        <p>Have an account?</p>
+        <Link to="/login">
+          <button type="button">Sign in</button>
+        </Link>
+      </div>
+    </div>
+  );
 }
-export default SignUp;
 
+export default SignUp;
 

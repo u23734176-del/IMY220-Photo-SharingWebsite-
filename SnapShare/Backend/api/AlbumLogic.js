@@ -1,7 +1,39 @@
-
 // AlbumLogic.js
 const { ObjectId } = require("mongodb");
 const { getDB } = require("../database");
+
+// Strict 24-character hex check (ObjectId.isValid also accepts any 12-char string)
+const HEX_24 = /^[0-9a-fA-F]{24}$/;
+const isValidId = (value) => HEX_24.test(String(value ?? ""));
+
+// List of ids -> unique ObjectIds, dropping anything invalid
+function toUniqueObjectIds(list) {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const raw of list) {
+    const id = String(raw ?? "");
+    if (isValidId(id) && !seen.has(id)) {
+      seen.add(id);
+      result.push(new ObjectId(id));
+    }
+  }
+  return result;
+}
+
+// Keep only the post ids that really belong to this user
+async function filterOwnedPostIds(userId, rawIds) {
+  const ids = toUniqueObjectIds(rawIds);
+  if (ids.length === 0) return [];
+
+  const owned = await getDB()
+    .collection("Posts")
+    .find({ _id: { $in: ids }, userID: userId }, { projection: { _id: 1 } })
+    .toArray();
+
+  const ownedSet = new Set(owned.map((p) => p._id.toString()));
+  return ids.filter((id) => ownedSet.has(id.toString()));
+}
 
 // Create a new Album
 async function createAlbum(username, albumData = {}) {
@@ -11,7 +43,7 @@ async function createAlbum(username, albumData = {}) {
 
   const { title, description, postsIDs } = albumData;
 
-  if (!title || !title.trim()) {
+  if (typeof title !== "string" || !title.trim()) {
     return { success: false, status: 400, message: "Album title is required." };
   }
 
@@ -20,27 +52,25 @@ async function createAlbum(username, albumData = {}) {
   const albumsCollection = db.collection("Albums");
   const postsCollection = db.collection("Posts");
 
-  const user = await usersCollection.findOne({ username: username.trim() });
+  const user = await usersCollection.findOne({ username: String(username).trim() });
   if (!user) {
     return { success: false, status: 404, message: "User profile not found." };
   }
 
-  // Validate and convert postsIDs array to ObjectIds
-  const validPostObjectIds = Array.isArray(postsIDs)
-    ? postsIDs.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id))
-    : [];
+  // Only the user's own, valid posts can go into their album
+  const validPostObjectIds = await filterOwnedPostIds(user._id, postsIDs);
 
   const newAlbum = {
     userID: user._id,
     title: title.trim(),
-    description: description ? description.trim() : "",
+    description: typeof description === "string" ? description.trim() : "",
     postsIDs: validPostObjectIds,
     createdAt: new Date()
   };
 
   const result = await albumsCollection.insertOne(newAlbum);
 
-  //  Link album ID into user's albumsIDs array
+  // Link album ID into user's albumsIDs array
   await usersCollection.updateOne(
     { _id: user._id },
     { $addToSet: { albumsIDs: result.insertedId } }
@@ -65,15 +95,13 @@ async function createAlbum(username, albumData = {}) {
   };
 }
 
-
- // Edit an existing Album
- 
+// Edit an existing Album
 async function editAlbum(albumId, username, updateData = {}) {
   if (!albumId || !username) {
     return { success: false, status: 400, message: "Album ID and username are required." };
   }
 
-  if (!ObjectId.isValid(albumId)) {
+  if (!isValidId(albumId)) {
     return { success: false, status: 400, message: "Invalid Album ID format." };
   }
 
@@ -82,7 +110,7 @@ async function editAlbum(albumId, username, updateData = {}) {
   const albumsCollection = db.collection("Albums");
   const postsCollection = db.collection("Posts");
 
-  const user = await usersCollection.findOne({ username: username.trim() });
+  const user = await usersCollection.findOne({ username: String(username).trim() });
   if (!user) {
     return { success: false, status: 404, message: "User profile not found." };
   }
@@ -100,17 +128,26 @@ async function editAlbum(albumId, username, updateData = {}) {
   }
 
   const fieldsToUpdate = {};
-  if (updateData.title !== undefined) fieldsToUpdate.title = updateData.title.trim();
-  if (updateData.description !== undefined) fieldsToUpdate.description = updateData.description.trim();
+
+  if (updateData.title !== undefined) {
+    if (typeof updateData.title !== "string" || !updateData.title.trim()) {
+      return { success: false, status: 400, message: "Album title cannot be empty." };
+    }
+    fieldsToUpdate.title = updateData.title.trim();
+  }
+
+  if (updateData.description !== undefined) {
+    fieldsToUpdate.description =
+      typeof updateData.description === "string" ? updateData.description.trim() : "";
+  }
 
   if (updateData.postsIDs !== undefined) {
-    const validPostObjectIds = Array.isArray(updateData.postsIDs)
-      ? updateData.postsIDs.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id))
-      : [];
+    // Posts must belong to the album's owner
+    const validPostObjectIds = await filterOwnedPostIds(album.userID, updateData.postsIDs);
 
     fieldsToUpdate.postsIDs = validPostObjectIds;
 
-    // Remove albumID reference from posts no longer in this album
+    // Remove albumID reference from posts previously in this album
     await postsCollection.updateMany(
       { albumID: albumObjId },
       { $set: { albumID: null } }
@@ -144,14 +181,13 @@ async function editAlbum(albumId, username, updateData = {}) {
   };
 }
 
-
 // Delete an Album
 async function deleteAlbum(albumId, username) {
   if (!albumId || !username) {
     return { success: false, status: 400, message: "Album ID and username are required." };
   }
 
-  if (!ObjectId.isValid(albumId)) {
+  if (!isValidId(albumId)) {
     return { success: false, status: 400, message: "Invalid Album ID format." };
   }
 
@@ -160,7 +196,7 @@ async function deleteAlbum(albumId, username) {
   const albumsCollection = db.collection("Albums");
   const postsCollection = db.collection("Posts");
 
-  const user = await usersCollection.findOne({ username: username.trim() });
+  const user = await usersCollection.findOne({ username: String(username).trim() });
   if (!user) {
     return { success: false, status: 404, message: "User profile not found." };
   }
@@ -199,8 +235,7 @@ async function deleteAlbum(albumId, username) {
   };
 }
 
-
-//Get all albums for a given user
+// Get all albums for a given user (newest first)
 async function getUserAlbums(username) {
   if (!username) {
     return { success: false, status: 400, message: "Username parameter is required." };
@@ -210,12 +245,15 @@ async function getUserAlbums(username) {
   const usersCollection = db.collection("Users");
   const albumsCollection = db.collection("Albums");
 
-  const user = await usersCollection.findOne({ username: username.trim() });
+  const user = await usersCollection.findOne({ username: String(username).trim() });
   if (!user) {
     return { success: false, status: 404, message: "User profile not found." };
   }
 
-  const albums = await albumsCollection.find({ userID: user._id }).toArray();
+  const albums = await albumsCollection
+    .find({ userID: user._id })
+    .sort({ createdAt: -1 })
+    .toArray();
 
   return {
     success: true,

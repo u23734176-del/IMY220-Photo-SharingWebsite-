@@ -1,18 +1,63 @@
 // src/components/UserSearchSection.jsx
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProfilePreview from './ProfilePreview';
+import AdminDeleteUserButton from './AdminDeleteUserButton';
 
-function UserSearchSection({ users = [] }) {
+function UserSearchSection({ username }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [result, setResult] = useState({ query: "", users: [], error: "" });
+  const [messages, setMessages] = useState({});
 
-  const filteredUsers = searchQuery.trim()
-    ? users.filter((u) =>
-        u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.firstname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.surname.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : [];
+  const query = searchQuery.trim();
+
+  // Debounced search; state is only set inside the timer callback
+  useEffect(() => {
+    if (!query) return undefined;
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Search failed.");
+        if (!cancelled) setResult({ query, users: data.users || [], error: "" });
+      } catch (err) {
+        console.error("User search failed:", err);
+        if (!cancelled) setResult({ query, users: [], error: err.message });
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
+  const isCurrent = result.query === query;
+  const users = isCurrent ? result.users : [];
+
+  const handleAddFriend = async (user) => {
+    const key = String(user._id);
+    try {
+      const response = await fetch("/api/friends/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senderUsername: username, receiverUsername: user.username }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not send request.");
+      setMessages((prev) => ({ ...prev, [key]: data.message || "Friend request sent." }));
+    } catch (err) {
+      setMessages((prev) => ({ ...prev, [key]: err.message }));
+    }
+  };
+
+  const handleDeleted = (deletedUsername) => {
+    setResult((prev) => ({
+      ...prev,
+      users: prev.users.filter((u) => u.username !== deletedUsername),
+    }));
+  };
 
   return (
     <section>
@@ -26,18 +71,40 @@ function UserSearchSection({ users = [] }) {
         />
       </div>
 
-      {searchQuery.trim() !== "" && (
+      {query !== "" && (
         <div>
-          <h4>Results ({filteredUsers.length})</h4>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <div key={user.id}>
-                <ProfilePreview user={user} />
-                <hr />
-              </div>
-            ))
+          {!isCurrent ? (
+            <p>Searching...</p>
           ) : (
-            <p>No users found matching "{searchQuery}".</p>
+            <>
+              <h4>Results ({users.length})</h4>
+              {result.error && <p style={{ color: "red" }}>{result.error}</p>}
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <div key={String(user._id)}>
+                    <ProfilePreview user={user} />
+
+                    {username && user.username !== username && (
+                      <div>
+                        <button type="button" onClick={() => handleAddFriend(user)}>
+                          Add Friend
+                        </button>
+                        {messages[String(user._id)] && <span> {messages[String(user._id)]}</span>}
+                      </div>
+                    )}
+
+                    <AdminDeleteUserButton
+                      targetUsername={user.username}
+                      currentUser={username}
+                      onDeleted={handleDeleted}
+                    />
+                    <hr />
+                  </div>
+                ))
+              ) : (
+                !result.error && <p>No users found matching "{searchQuery}".</p>
+              )}
+            </>
           )}
         </div>
       )}
