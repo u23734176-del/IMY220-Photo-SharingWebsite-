@@ -1,0 +1,15 @@
+name: docker-compose
+
+services:
+  web:
+    build: .
+    ports:
+      - "5173:5173"
+    environment:
+      - PORT=5173
+  webloll:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001

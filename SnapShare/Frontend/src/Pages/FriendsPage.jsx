@@ -6,16 +6,22 @@ import UserSearchSection from '../components/UserSearchSection';
 // so this page only needs to hand it the logged-in username.
 function Friends({ username, friendsList = [] }) {
   return (
-    <main>
-      <h2>Friends & Community ({username || "Guest"})</h2>
+    <main className="mx-auto w-full max-w-6xl space-y-6">
+      <h2 className="rounded-md bg-brand-panel py-4 text-center">
+        Friends &amp; Community ({username || "Guest"})
+      </h2>
 
-      {/* Friends list + pending requests */}
-      <FriendsComponent username={username} friendsList={friendsList} />
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Friends list + pending requests */}
+        <section className="rounded-md bg-brand-panel p-4">
+          <FriendsComponent username={username} friendsList={friendsList} />
+        </section>
 
-      <hr />
-
-      {/* Community search + Add Friend */}
-      <UserSearchSection username={username} />
+        {/* Community search + Add Friend */}
+        <section className="rounded-md bg-brand-panel p-4">
+          <UserSearchSection username={username} />
+        </section>
+      </div>
     </main>
   );
 }

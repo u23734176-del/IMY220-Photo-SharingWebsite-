@@ -148,20 +148,24 @@ function HomePage({ username, posts = [], setPosts, onUpdatePost }) {
   });
 
   return (
-    <main>
+    <main className="mx-auto w-full max-w-6xl space-y-6">
+      <div className="mx-auto max-w-3xl text-center">
       <HomeHeader
         username={username}
         onNavigateProfile={() => navigate("/profile")}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
+      </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
       <FeedFilters
         selectedActivity={activityFilter}
         onActivityChange={setActivityFilter}
         selectedCategory={categoryFilter}
         onCategoryChange={setCategoryFilter}
       />
+      </div>
 
       {error && <p style={{ color: "orange" }}>{error}</p>}
       {isLoading && <p>Loading global feed...</p>}
@@ -199,8 +203,8 @@ function HomePage({ username, posts = [], setPosts, onUpdatePost }) {
       )}
 
       {/* Matching posts (or the whole feed when not searching) */}
-      <section>
-        {query !== "" && <h3>Posts ({displayedPosts.length})</h3>}
+      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        {query !== "" && <h3 className="col-span-full">Posts ({displayedPosts.length})</h3>}
 
         {!isLoading && displayedPosts.length > 0 ? (
           displayedPosts.map((postItem) => (
@@ -214,7 +218,7 @@ function HomePage({ username, posts = [], setPosts, onUpdatePost }) {
           ))
         ) : (
           !isLoading && (
-            <p>{query || categoryFilter ? "No posts match your search or filters." : "No posts available."}</p>
+            <p className="col-span-full">{query || categoryFilter ? "No posts match your search or filters." : "No posts available."}</p>
           )
         )}
       </section>

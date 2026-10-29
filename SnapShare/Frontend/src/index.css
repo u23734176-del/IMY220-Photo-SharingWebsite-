@@ -1,1 +1,80 @@
+/* u23734176 Tadiwanashe Chigeza */
 /* No styling required yet */
+/* import tailwindCSS */
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   THEME: fonts + colours taken from the mockups
+   ------------------------------------------------------------------ */
+@theme {
+  /* Throw away Tailwind's default font stacks (sans / serif / mono) */
+  --font-*: initial;
+ 
+  /* Our only two fonts */
+  --font-body: "Jost", sans-serif;
+  --font-display: "Lilita One", sans-serif;
+ 
+  /* Make Tailwind's preflight use Jost everywhere (even for <code>) */
+  --default-font-family: var(--font-body);
+  --default-mono-font-family: var(--font-body);
+ 
+  /* Colours from the mockups */
+  --color-brand-sky: #b9c9f7;      /* splash page background */
+  --color-brand-steel: #7a9cc6;    /* splash top bar */
+  --color-brand-sidebar: #6389ae;  /* app sidebar */
+  --color-brand-pink: #dd7fa0;     /* main buttons / photo frames */
+  --color-brand-lilac: #c18fcb;    /* active nav item */
+  --color-brand-lavender: #ecd9fb; /* profile avatar */
+  --color-brand-panel: #d9d9d9;    /* grey panels */
+  --color-brand-royal: #5b5bd6;    /* logo */
+  --color-brand-ink: #14142b;      /* text */
+}
+ 
+/* ------------------------------------------------------------------
+   BASE: Tailwind's preflight strips the browser defaults, so give the
+   plain HTML elements used by your components a readable look.
+   (Utility classes on a component always win over these.)
+   ------------------------------------------------------------------ */
+@layer base {
+  html,
+  body {
+    font-family: var(--font-body);
+  }
+ 
+  body {
+    @apply bg-white text-brand-ink antialiased;
+  }
+ 
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+  h1 { @apply text-4xl leading-tight; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-xl; }
+ 
+  button {
+    @apply cursor-pointer rounded-full bg-brand-pink px-4 py-1.5 text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+ 
+  input,
+  select,
+  textarea {
+    @apply rounded-lg border border-brand-steel bg-white px-3 py-1.5;
+  }
+ 
+  label {
+    @apply font-medium;
+  }
+ 
+  ul {
+    @apply list-disc pl-5;
+  }
+ 
+  hr {
+    @apply my-4 border-brand-steel/30;
+  }
+}

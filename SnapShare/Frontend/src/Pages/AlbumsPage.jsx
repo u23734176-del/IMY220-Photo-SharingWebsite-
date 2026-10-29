@@ -181,38 +181,41 @@ function AlbumsPage({ username, posts = [], setPosts }) {
     .map((post) => ({ ...post, id: String(getPostId(post)) }));
 
   return (
-    <main>
-      <h2>{username}'s Albums</h2>
-
-      {/* Create New Album Section */}
-      <CreateAlbumForm
-        userPosts={userPosts}
-        onCreateAlbum={handleCreateAlbum}
-        currentUser={username}
-      />
-      <hr />
+    <main className="mx-auto w-full max-w-6xl space-y-6">
+      <h2 className="rounded-md bg-brand-panel py-4 text-center">{username}'s Albums</h2>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
       {isLoading && <p>Loading albums...</p>}
 
       {/* List of User Albums */}
-      <section>
-        <h3>Your Collections</h3>
+      <section className="space-y-4">
+        <h3 className="w-full max-w-sm rounded-md bg-brand-panel px-4 py-2 text-center">Your Collections</h3>
+        <div className="grid gap-6 lg:grid-cols-2">
         {!isLoading && albums.length > 0 ? (
           albums.map((albumItem) => (
-            <div key={albumItem.id}>
+            <div key={albumItem.id} className="rounded-md bg-brand-panel/50 p-4">
               <Album
                 album={albumItem}
                 userPosts={userPosts}
                 onUpdateAlbum={handleUpdateAlbum}
                 onDeleteAlbum={handleDeleteAlbum}
               />
-              <hr />
             </div>
           ))
         ) : (
-          !isLoading && <p>No albums created yet.</p>
+          !isLoading && <p className="col-span-full">No albums created yet.</p>
         )}
+        </div>
+      </section>
+
+      {/* Create bar sits at the bottom, like the Post page */}
+      <section className="rounded-md bg-brand-panel p-4">
+        <h3 className="mb-3">Create a new album</h3>
+        <CreateAlbumForm
+          userPosts={userPosts}
+          onCreateAlbum={handleCreateAlbum}
+          currentUser={username}
+        />
       </section>
     </main>
   );

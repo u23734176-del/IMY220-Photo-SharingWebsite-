@@ -13,7 +13,7 @@ import Friends from './Pages/FriendsPage';
 import ProfilePage from './Pages/ProfilePage';
 
 // Components
-import Navigation from './components/navigation';
+import Shell from './components/Shell';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 
@@ -113,10 +113,10 @@ function App() {
   return (
     <BrowserRouter>
     
-    {username && <Navigation username={username} />}
+    <Shell username={username}>
 
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage username={username} />} />
          <Route path="*" element={<Navigate to="/" replace />} />
         <Route
           path="/login"
@@ -187,6 +187,7 @@ function App() {
           element={ guard(<Albums username={username} posts={posts} setPosts={setPosts} />)}
         />
       </Routes>
+      </Shell>
     </BrowserRouter>
   );
 }

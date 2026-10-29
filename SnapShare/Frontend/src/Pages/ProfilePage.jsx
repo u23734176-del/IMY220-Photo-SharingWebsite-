@@ -185,21 +185,33 @@ function ProfilePage({ username, setUsername, users = [], friendsList = [] }) {
   };
 
   return (
-    <div id="main_page">
-      <ProfileHeader user={userProfile} />
+    <div id="main_page" className="mx-auto w-full max-w-4xl space-y-6">
+      {/* Avatar */}
+      <div className="mx-auto grid size-24 place-items-center rounded-full bg-brand-lavender text-4xl">
+        {(userProfile.username || "?").charAt(0).toUpperCase()}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Profile details */}
+        <section className="rounded-md bg-brand-panel p-4">
+          <ProfileHeader user={userProfile} />
+        </section>
 
       {/* Only load real friends / pending requests on your own profile,
           so other people's requests are never shown or actionable */}
-      <FriendsComponent
-        username={isOwnProfile ? username : ""}
-        friendsList={friendsList}
-      />
+        <section className="rounded-md bg-brand-panel p-4">
+          <FriendsComponent
+            username={isOwnProfile ? username : ""}
+            friendsList={friendsList}
+          />
+        </section>
+      </div>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && <p style={{ color: "green" }}>{success}</p>}
 
-      <section>
-        <h3>Account Management</h3>
+      <section className="rounded-md bg-brand-panel p-4">
+        <h3 className="mb-3">Account Management</h3>
         <div>
           {ACCOUNT_FIELDS.map(({ fieldName, label, type }) => (
             <EditableField
@@ -233,10 +245,12 @@ function ProfilePage({ username, setUsername, users = [], friendsList = [] }) {
       </section>
 
       {/* Actions allowed for active user */}
-      <AccountActions
-        onLogout={handleLogout}
-        onDeleteAccount={handleDeleteAccount}
-      />
+      <div className="flex flex-wrap justify-center gap-4">
+        <AccountActions
+          onLogout={handleLogout}
+          onDeleteAccount={handleDeleteAccount}
+        />
+      </div>
     </div>
   );
 }

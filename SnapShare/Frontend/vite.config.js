@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-
+import tailwindcss from "@tailwindcss/vite"
 // Backend URL: localhost for plain `npm run dev`, overridden inside Docker
 ////helpr frontend developme server knows where to find your backedn point
 
@@ -10,7 +10,7 @@ const target = process.env.VITE_API_TARGET || 'http://localhost:3001'
 // //helps port bridigin 
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react() , tailwindcss()] ,
   server: {
     proxy: {
       '/api': { target, changeOrigin: true, secure: false },

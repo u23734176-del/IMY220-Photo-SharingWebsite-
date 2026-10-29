@@ -170,16 +170,8 @@ function Posts({ username, posts = [], setPosts, onAddPost, onUpdatePost }) {
   }
 
   return (
-    <main>
-      <h2>Posts by {activeAuthor}</h2>
-
-      {/* Only let a user create posts on their own page */}
-      {isOwnPage && (
-        <CreatePostForm onAddPost={handleAddPost} currentUser={username} />
-      )}
-      {isPosting && <p>Posting...</p>}
-
-      <hr />
+    <main className="mx-auto w-full max-w-6xl space-y-6">
+      <h2 className="rounded-md bg-brand-panel py-4 text-center">Posts by {activeAuthor}</h2>
 
       <div>
         <button type="button" onClick={() => navigate("/profile")}>
@@ -194,13 +186,13 @@ function Posts({ username, posts = [], setPosts, onAddPost, onUpdatePost }) {
         onCategoryChange={setCategoryFilter}
       />
 
-      <hr />
-
       {error && <p style={{ color: "red" }}>{error}</p>}
       {success && <p style={{ color: "green" }}>{success}</p>}
       {isLoading && <p>Loading user posts...</p>}
 
-      <section>
+      <h3 className="w-full max-w-sm rounded-md bg-brand-panel px-4 py-2 text-center">Previous Posts</h3>
+
+      <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {!isLoading && userPosts.length > 0 ? (
           userPosts.map((postItem) => (
             <Post
@@ -214,10 +206,19 @@ function Posts({ username, posts = [], setPosts, onAddPost, onUpdatePost }) {
           ))
         ) : (
           !isLoading && (
-            <p>{categoryFilter ? "No posts match this category." : "No posts found for this user."}</p>
+            <p className="col-span-full">{categoryFilter ? "No posts match this category." : "No posts found for this user."}</p>
           )
         )}
       </section>
+
+      {/* Upload bar sits at the bottom, like the mockup */}
+      {isOwnPage && (
+        <section className="rounded-md bg-brand-panel p-4">
+          <h3 className="mb-3">Upload a post</h3>
+          <CreatePostForm onAddPost={handleAddPost} currentUser={username} />
+          {isPosting && <p>Posting...</p>}
+        </section>
+      )}
     </main>
   );
 }
