@@ -1,6 +1,7 @@
-// App.jsx
+// U23734176 Tadiwanashe Chigeza
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route , Navigate  } from "react-router-dom";
+import { getCookie , setCookie ,deleteCookie } from './utils/cookie';
 
 // Pages
 import LandingPage from './Pages/LandingPage';
@@ -19,22 +20,13 @@ import SignUp from './components/SignUp';
 // Styling
 import './App.css';
 
-const USERNAME_KEY = "snapshare_username";
+const SESSION_COOKIE  = "snapshare_username";
 
 const getPostId = (post) => {
   if (!post) return null;
   if (typeof post._id === 'object' && post._id?.$oid) return post._id.$oid;
   return post._id || post.id;
 };
-
-// Read the saved session (if any). Safe if storage is blocked.
-function loadStoredUsername() {
-  try {
-    return localStorage.getItem(USERNAME_KEY) || "";
-  } catch {
-    return "";
-  }
-}
 
 // Fresh server posts win over what is already in state
 function mergePosts(fresh, prev) {
@@ -45,25 +37,24 @@ function mergePosts(fresh, prev) {
   });
   return Array.from(uniqueMap.values());
 }
+  function Protected({ username, children }) {
+     return username ? children : <Navigate to="/" replace />;
+}
 
 function App() {
   // Start from the saved session so a refresh keeps the user logged in
-  const [username, setUsername] = useState(loadStoredUsername);
+  const [username, setUsername] = useState( ()=> getCookie(SESSION_COOKIE) || "" );
   const [users, setUsers] = useState([]);
   const [friendsList, setFriendsList] = useState([]);
   const [posts, setPosts] = useState([]);
 
-  // Keep storage in sync: logging in saves, logging out ("") clears
+  // Keep storage in sync:  uses a Cookie (Clinet-side )
   useEffect(() => {
-    try {
       if (username) {
-        localStorage.setItem(USERNAME_KEY, username);
+        setCookie(SESSION_COOKIE ,username , 7); // 7 days cookie
       } else {
-        localStorage.removeItem(USERNAME_KEY);
+        deleteCookie(SESSION_COOKIE);
       }
-    } catch {
-      // storage unavailable: the session just won't survive a refresh
-    }
   }, [username]);
 
   // On startup: confirm the saved user still exists, and preload the feed
@@ -71,19 +62,19 @@ function App() {
     let cancelled = false;
 
     async function restore() {
-      const stored = loadStoredUsername();
+      const stored =  getCookie(SESSION_COOKIE);
 
       if (stored) {
         try {
           const res = await fetch(`/api/profile/${encodeURIComponent(stored)}`);
-          // Account was deleted elsewhere: drop the stale session
+         
           if (res.status === 404 && !cancelled) {
             setUsername((current) => (current === stored ? "" : current));
+            return; //logged out
           }
         } catch {
           // Server unreachable: keep the session
         }
-      }
 
       try {
         const res = await fetch("/api/posts");
@@ -93,9 +84,10 @@ function App() {
           if (!cancelled) setPosts((prev) => mergePosts(loaded, prev));
         }
       } catch {
-        // Feed will load when the Home page fetches it
+        // Home page will fetch it. 
       }
     }
+  }
 
     restore();
     return () => {
@@ -116,13 +108,16 @@ function App() {
     setPosts((prevPosts) => [newPost, ...prevPosts]);
   };
 
+   const guard = (el) => <Protected username={username}>{el}</Protected>;
+
   return (
     <BrowserRouter>
-      <Navigation username={username} />
+    
+    {username && <Navigation username={username} />}
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
-
+         <Route path="*" element={<Navigate to="/" replace />} />
         <Route
           path="/login"
           element={<Login username={username} setUsername={setUsername} />}
@@ -136,91 +131,60 @@ function App() {
         {/* Home Feed */}
         <Route
           path="/home"
-          element={
-            <HomePage
-              username={username}
-              posts={posts}
-              setPosts={setPosts}
-              onUpdatePost={handleUpdatePost}
+          element={guard(
+            <HomePage  username={username} posts={posts} setPosts={setPosts}  onUpdatePost={handleUpdatePost}
             />
-          }
+          )}
         />
 
         <Route
           path="/themeOfDay"
-          element={<ThemeOfDay username={username} posts={posts} />}
+          element={ guard(<ThemeOfDay username={username} posts={posts} />)}
         />
 
         {/* User Profiles */}
         <Route
           path="/profile"
-          element={
-            <ProfilePage
-              username={username}
-              setUsername={setUsername}
-              friendsList={friendsList}
-              setFriendsList={setFriendsList}
-              posts={posts}
+          element={ guard(
+            <ProfilePage username={username} setUsername={setUsername} friendsList={friendsList} setFriendsList={setFriendsList}   posts={posts}
             />
-          }
+          )}
         />
         <Route
           path="/profile/:id"
-          element={
-            <ProfilePage
-              username={username}
-              setUsername={setUsername}
-              friendsList={friendsList}
-              setFriendsList={setFriendsList}
-              posts={posts}
+          element={ guard(
+            <ProfilePage username={username} setUsername={setUsername}  friendsList={friendsList} setFriendsList={setFriendsList}   posts={posts}
             />
-          }
+          )}
         />
-
         {/* User Posts Page */}
         <Route
           path="/posts"
-          element={
-            <Posts
-              username={username}
-              posts={posts}
-              setPosts={setPosts}
-              onAddPost={handleAddPost}
-              onUpdatePost={handleUpdatePost}
+          element={ guard(
+            <Posts username={username}  posts={posts}setPosts={setPosts} onAddPost={handleAddPost} onUpdatePost={handleUpdatePost}
             />
-          }
+        )}
         />
         <Route
           path="/posts/:id"
-          element={
-            <Posts
-              username={username}
-              posts={posts}
-              setPosts={setPosts}
-              onAddPost={handleAddPost}
-              onUpdatePost={handleUpdatePost}
+          element={ guard(
+            <Posts  username={username} posts={posts} setPosts={setPosts} onAddPost={handleAddPost} onUpdatePost={handleUpdatePost}
             />
-          }
+        )}
         />
-
         {/* Friends Page */}
         <Route
           path="/friends"
-          element={
-            <Friends
-              username={username}
-              friendsList={friendsList}
-              setFriendsList={setFriendsList}
-              users={users}
-              setUsers={setUsers}
+          element={ guard(
+            <Friends  username={username} friendsList={friendsList} setFriendsList={setFriendsList} users={users} setUsers={setUsers}
             />
-          }
+          )}
         />
 
         {/* Albums Page */}
         <Route
           path="/albums"
-          element={<Albums username={username} posts={posts} setPosts={setPosts} />}
+          element={ guard(<Albums username={username} posts={posts} setPosts={setPosts} />)}
         />
       </Routes>
     </BrowserRouter>

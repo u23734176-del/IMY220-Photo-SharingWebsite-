@@ -12,6 +12,8 @@ function Navigation(){
             <Link to ="/friends">Friends</Link>
             <br/>
             <Link to ="/albums">Albums</Link>
+            <br/>
+            <Link to="/profile">Profile</Link>
         </nav>
     )
 }

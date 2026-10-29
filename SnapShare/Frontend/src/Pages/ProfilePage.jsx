@@ -146,7 +146,7 @@ function ProfilePage({ username, setUsername, users = [], friendsList = [] }) {
     }
 
     if (setUsername) setUsername("");
-    navigate("/login");
+    navigate("/", {replace:true}) ;
   };
 
   // ---------- DELETE ----------
@@ -174,7 +174,7 @@ function ProfilePage({ username, setUsername, users = [], friendsList = [] }) {
 
       if (isOwnProfile) {
         if (setUsername) setUsername("");
-        navigate("/signUp");
+        navigate("/", { replace: true });
       } else {
         navigate("/home");
       }
