@@ -12,8 +12,8 @@ const {
   likePost,
   commentOnPost,
   reportPost
-} = require("./PostLogic");
-const { uploadSingleImage } = require("./upload");
+} = require("../Logic/PostLogic");
+const { uploadSingleImage } = require("../upload");
 
 // GET /api/posts  (global feed)
 router.get("/posts", async (req, res) => {

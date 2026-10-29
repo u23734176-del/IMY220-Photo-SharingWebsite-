@@ -1,6 +1,6 @@
 // FriendsLogic.js
 const { ObjectId } = require("mongodb");
-const { getDB } = require("../database");
+const { getDB } = require("../../database");
 
 // Matches "pending" regardless of how older documents capitalised it
 const PENDING = { $in: ["pending", "Pending"] };

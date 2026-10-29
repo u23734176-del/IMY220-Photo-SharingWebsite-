@@ -9,15 +9,13 @@ RUN npm install
 
 COPY . .
 
-# Layer 5
-CMD [ "npm" ,"run" ,"dev" ,"--" ,"--host" ,"0.0.0.0" ,"--port" ,"5173"]
-
-
-#Use  to build container first " docker build -t frontend-dev ."
-#use to run the container ""
+ENV VITE_API_TARGET=http://host.docker.internal:3001
 
 # Expose Vite's default dev server port
 EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+
 
 
 

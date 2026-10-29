@@ -1,5 +1,5 @@
 // PorfilesLogic.js
-const { getDB } = require("../database");
+const { getDB } = require("../../database");
 
 // Login Logic
 async function loginUser(username, password) {

@@ -1,7 +1,7 @@
 // AlbumRoutes.js
 const express = require("express");
 const router = express.Router();
-const { createAlbum, editAlbum, deleteAlbum,  getUserAlbums} = require("./AlbumLogic");
+const { createAlbum, editAlbum, deleteAlbum,  getUserAlbums} = require("../Logic/AlbumLogic");
 
 // POST /api/albums - Create Album
 router.post("/albums", async (req, res) => {

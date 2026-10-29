@@ -11,7 +11,7 @@ const {
   updateProfile,
   deleteProfile,
   searchUsers
-} = require("./PorfilesLogic");
+} = require("../Logic/PorfilesLogic");
 
 // Login API
 router.post("/login", async (req, res) => {

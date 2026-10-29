@@ -9,10 +9,10 @@ const { Server } = require("socket.io");
 const { connectDB } = require("./database");
 
 // Import API Routes
-const profileRoutes = require("./api/PorfileRoutes");
-const friendsRoutes = require("./api/FriendsRoutes");
-const postRoutes = require("./api/PostRoutes");
-const albumRoutes = require("./api/AlbumRoutes");
+const profileRoutes = require("./api/Routes/PorfileRoutes");
+const friendsRoutes = require("./api/Routes/FriendsRoutes");
+const postRoutes = require("./api/Routes/PostRoutes");
+const albumRoutes = require("./api/Routes/AlbumRoutes");
 const { UPLOAD_DIR } = require("./api/upload");
 
 dotenv.config();

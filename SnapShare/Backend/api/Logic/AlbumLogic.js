@@ -1,6 +1,6 @@
 // AlbumLogic.js
 const { ObjectId } = require("mongodb");
-const { getDB } = require("../database");
+const { getDB } = require("../../database");
 
 // Strict 24-character hex check (ObjectId.isValid also accepts any 12-char string)
 const HEX_24 = /^[0-9a-fA-F]{24}$/;

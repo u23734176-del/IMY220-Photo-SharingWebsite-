@@ -8,7 +8,7 @@ const {
   getPendingRequests,
   getFriendsList,
   removeFriend
-} = require("./FriendsLogic");
+} = require("../Logic/FriendsLogic");
 
 // GET /api/users/search?q=term
 router.get("/users/search", async (req, res) => {

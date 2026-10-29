@@ -1,2 +1,22 @@
+# Dependencies are installed inside the image (npm ci)
 node_modules
-.gitkeep
+# Build output
+dist
+dist-ssr
+# Logs
+logs
+*.log
+npm-debug.log*
+# Environment and local files
+.env
+.env.*
+*.local
+#  Git and Docker files
+.git
+.gitignore
+.dockerignore
+Dockerfile
+# Editor and OS files
+uploads
+.vscode
+.DS_Store

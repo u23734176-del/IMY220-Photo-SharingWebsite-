@@ -1,6 +1,6 @@
 // PostLogic.js
 const { ObjectId } = require("mongodb");
-const { getDB } = require("../database");
+const { getDB } = require("../../database");
 
 // Parse a raw hashtag string or array into an array of "#tag" strings
 function parseHashtags(rawHashtags) {

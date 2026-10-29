@@ -1,13 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "The backend of Snapshare",
+  "description": "The backend of Snapshare Application",
   "license": "ISC",
   "author": "u23734176 Tadiwanashe Chigeza",
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1" ,
+    "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",

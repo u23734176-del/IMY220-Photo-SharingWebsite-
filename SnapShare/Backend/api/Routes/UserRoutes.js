@@ -1,7 +1,7 @@
 // routes/UserRoutes.js
 const express = require("express");
 const router = express.Router();
-const { getDB } = require("../database");
+const { getDB } = require("../../database");
 
 // GET /api/users/search?q=query
 router.get("/users/search", async (req, res) => {
