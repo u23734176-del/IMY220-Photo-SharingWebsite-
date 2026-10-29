@@ -5,8 +5,7 @@ const { getDB } = require("../database");
 // Parse a raw hashtag string or array into an array of "#tag" strings
 function parseHashtags(rawHashtags) {
   if (Array.isArray(rawHashtags)) {
-    return rawHashtags
-      .map((tag) => String(tag).trim())
+    return rawHashtags.map((tag) => String(tag).trim())
       .filter((tag) => tag.length > 0)
       .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`));
   }
@@ -22,9 +21,7 @@ function parseHashtags(rawHashtags) {
 
 // Adds the frontend-friendly fields (author, caption, image) to a single post
 async function withAuthor(post) {
-  const author = await getDB()
-    .collection("Users")
-    .findOne({ _id: post.userID }, { projection: { username: 1 } });
+  const author = await getDB().collection("Users").findOne({ _id: post.userID }, { projection: { username: 1 } });
 
   return {
     ...post,
@@ -228,11 +225,7 @@ async function getPostsByUsername(username) {
     return { success: false, status: 404, message: "User profile not found." };
   }
 
-  const rawPosts = await db
-    .collection("Posts")
-    .find({ userID: user._id })
-    .sort({ createdAt: -1 })
-    .toArray();
+  const rawPosts = await db.collection("Posts").find({ userID: user._id }).sort({ createdAt: -1 }).toArray();
 
   const posts = rawPosts.map((p) => ({
     ...p,

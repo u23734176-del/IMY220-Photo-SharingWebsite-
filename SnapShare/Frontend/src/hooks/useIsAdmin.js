@@ -6,8 +6,7 @@ const cache = new Map();
 
 function lookupAdmin(username) {
   if (!cache.has(username)) {
-    const request = fetch(`/api/profile/${encodeURIComponent(username)}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("lookup failed"))))
+    const request = fetch(`/api/profile/${encodeURIComponent(username)}`).then((res) => (res.ok ? res.json() : Promise.reject(new Error("lookup failed"))))
       .then((data) => data.user?.admin === true)
       .catch(() => {
         cache.delete(username); // allow a retry later

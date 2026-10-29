@@ -1,21 +1,27 @@
-FROM node:20-alpine
+#the base image that your new image will be built upon(Layer 1)
+FROM node:20
 
 WORKDIR /app
 
-# Copy package manifests first to leverage Docker layer caching
 COPY package*.json ./
 
-# Install dependencies
 RUN npm install
 
-# Copy application files
 COPY . .
+
+# Layer 5
+CMD [ "npm" ,"run" ,"dev" ,"--" ,"--host" ,"0.0.0.0" ,"--port" ,"5173"]
+
+
+#Use  to build container first " docker build -t frontend-dev ."
+#use to run the container ""
 
 # Expose Vite's default dev server port
 EXPOSE 5173
 
-# Run Vite bound to all network interfaces so localhost port forwarding works
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+
+
+
 
 
 
